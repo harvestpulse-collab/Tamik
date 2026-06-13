@@ -551,6 +551,7 @@ function calcDoses() {
   dosesData = results;
 
   const fmt = v => v === null ? '—' : Math.round(v * 10) / 10;
+  const dosesTable = document.getElementById('doses-table');
   dosesTable.innerHTML = `<thead><tr>
     <th>Название поля</th><th>Культура</th><th>Ур-ть т/га</th>
     <th>NO3-N мг/кг</th><th>P2O5 мг/кг</th><th>Гумус %</th>
