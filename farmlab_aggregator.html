@@ -156,7 +156,7 @@ tbody tr.total td { font-weight: 600; background: #f0f4ff; border-top: 2px solid
 .fields-section { margin-top: 1rem; }
 .field-row {
   display: grid;
-  grid-template-columns: 1.5fr 80px 80px 80px 80px 80px;
+  grid-template-columns: 1.5fr 100px 70px 70px 70px 60px 65px 65px;
   gap: 8px; align-items: center;
   padding: 8px 0; border-bottom: 1px solid #f3f4f6;
   font-size: 13px;
@@ -297,6 +297,8 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
           <div>NO3-N мг/кг</div>
           <div>P2O5 мг/кг</div>
           <div>Гумус %</div>
+          <div>В_N кг/т</div>
+          <div>В_P кг/т</div>
         </div>
         <div id="field-rows"></div>
       </div>
@@ -458,15 +460,7 @@ document.getElementById('send-to-m2-btn').onclick = () => {
 
 // ===== MODULE 2 =====
 
-// Вынос на 1 т продукции (кг д.в.) — источник: агрохимические справочники
-const CROPS = {
-  'Капуста':    { N: 4.0, P: 1.2 },
-  'Картофель':  { N: 5.0, P: 1.5 },
-  'Морковь':    { N: 3.0, P: 1.0 },
-  'Свекла':     { N: 4.0, P: 1.5 },
-  'Томат':      { N: 3.0, P: 1.0 },
-  'Другое':     { N: null, P: null }
-};
+// Вынос вводится вручную пользователем
 
 let fieldRows = [];
 
@@ -496,39 +490,33 @@ function renderFieldRows() {
   container.innerHTML = fieldRows.map((r, i) => `
     <div class="field-row">
       <input type="text" value="${r.name}" oninput="fieldRows[${i}].name=this.value" placeholder="Название поля">
-      <select onchange="fieldRows[${i}].crop=this.value">${cropOptions(r.crop)}</select>
+      <input type="text" value="${r.crop}" oninput="fieldRows[${i}].crop=this.value" placeholder="Культура">
       <input type="number" value="${r.yield}" step="1" min="0" oninput="fieldRows[${i}].yield=+this.value" placeholder="т/га">
       <input type="number" value="${r.no3}" step="0.1" min="0" oninput="fieldRows[${i}].no3=+this.value" placeholder="мг/кг">
       <input type="number" value="${r.p}" step="0.1" min="0" oninput="fieldRows[${i}].p=+this.value" placeholder="мг/кг">
       <input type="number" value="${r.som}" step="0.1" min="0" oninput="fieldRows[${i}].som=+this.value" placeholder="%">
+      <input type="number" value="${r.bn}" step="0.01" min="0" oninput="fieldRows[${i}].bn=+this.value" placeholder="В_N">
+      <input type="number" value="${r.bp}" step="0.01" min="0" oninput="fieldRows[${i}].bp=+this.value" placeholder="В_P">
     </div>`).join('');
 }
 
-function addFieldRow(name='', crop='Капуста', yld=0, no3=0, p=0, som=0) {
-  fieldRows.push({ name, crop, yield: yld, no3, p, som });
+function addFieldRow(name='', crop='', yld=0, no3=0, p=0, som=0, bn=0, bp=0) {
+  fieldRows.push({ name, crop, yield: yld, no3, p, som, bn, bp });
   renderFieldRows();
 }
 
 function populateM2FromM1(rows) {
   fieldRows = rows.map(r => ({
     name: r.field,
-    crop: guessCrop(r.field),
+    crop: '',
     yield: 0,
     no3: r.no3 !== null ? Math.round(r.no3 * 10) / 10 : 0,
     p: r.p !== null ? Math.round(r.p * 10) / 10 : 0,
-    som: r.som !== null ? Math.round(r.som * 10) / 10 : 0
+    som: r.som !== null ? Math.round(r.som * 10) / 10 : 0,
+    bn: 0,
+    bp: 0
   }));
   renderFieldRows();
-}
-
-function guessCrop(name) {
-  const n = name.toLowerCase();
-  if (n.includes('капуст')) return 'Капуста';
-  if (n.includes('картоф')) return 'Картофель';
-  if (n.includes('морков')) return 'Морковь';
-  if (n.includes('свекл')) return 'Свекла';
-  if (n.includes('томат') || n.includes('помидор')) return 'Томат';
-  return 'Капуста';
 }
 
 // Initial empty row
@@ -546,18 +534,15 @@ function calcDoses() {
   if (!fieldRows.length) { status2.textContent = 'Добавьте хотя бы одно поле.'; status2.className = 'status err'; return; }
 
   const results = fieldRows.map(r => {
-    const crop = CROPS[r.crop] || { N: null, P: null };
-    const Vn = crop.N;
-    const Vp = crop.P;
-    // Ду N = (В*Ур - Сп*Км*Кп - Г*Кн) / Ку
-    // Сп для N — это NO3 в мг/кг → нужно перевести в мг/100г: делим на 10
+    const Vn = r.bn;
+    const Vp = r.bp;
     const Sp_n = r.no3 / 10;
     const Sp_p = r.p / 10;
     let duN = null, duP = null;
-    if (Vn !== null && r.yield > 0) {
+    if (r.yield > 0 && Vn > 0) {
       duN = (Vn * r.yield - Sp_n * Km * Kp - r.som * Kn) / Ku;
     }
-    if (Vp !== null && r.yield > 0) {
+    if (r.yield > 0 && Vp > 0) {
       duP = (Vp * r.yield - Sp_p * Km * Kp) / Ku;
     }
     return { ...r, duN, duP };
@@ -566,15 +551,16 @@ function calcDoses() {
   dosesData = results;
 
   const fmt = v => v === null ? '—' : Math.round(v * 10) / 10;
-  const dosesTable = document.getElementById('doses-table');
   dosesTable.innerHTML = `<thead><tr>
     <th>Название поля</th><th>Культура</th><th>Ур-ть т/га</th>
     <th>NO3-N мг/кг</th><th>P2O5 мг/кг</th><th>Гумус %</th>
+    <th>В_N кг/т</th><th>В_P кг/т</th>
     <th>Ду N кг д.в./га</th><th>Ду P кг д.в./га</th>
   </tr></thead><tbody>
   ${results.map(r => `<tr>
     <td>${r.name}</td><td>${r.crop}</td><td>${r.yield}</td>
     <td>${r.no3}</td><td>${r.p}</td><td>${r.som}</td>
+    <td>${r.bn}</td><td>${r.bp}</td>
     <td><span class="result-badge badge-n">${fmt(r.duN)}</span></td>
     <td><span class="result-badge badge-p">${fmt(r.duP)}</span></td>
   </tr>`).join('')}
@@ -587,13 +573,13 @@ function calcDoses() {
 
 document.getElementById('dl-doses-btn').onclick = () => {
   if (!dosesData) return;
-  const hdr = ['Название поля', 'Культура', 'Урожайность т/га', 'NO3-N мг/кг', 'P2O5 мг/кг', 'Гумус %', 'Ду N кг д.в./га', 'Ду P кг д.в./га'];
-  const sd = [hdr, ...dosesData.map(r => [r.name, r.crop, r.yield, r.no3, r.p, r.som,
+  const hdr = ['Название поля', 'Культура', 'Урожайность т/га', 'NO3-N мг/кг', 'P2O5 мг/кг', 'Гумус %', 'В_N кг/т', 'В_P кг/т', 'Ду N кг д.в./га', 'Ду P кг д.в./га'];
+  const sd = [hdr, ...dosesData.map(r => [r.name, r.crop, r.yield, r.no3, r.p, r.som, r.bn, r.bp,
     r.duN !== null ? Math.round(r.duN * 10) / 10 : '',
     r.duP !== null ? Math.round(r.duP * 10) / 10 : ''
   ])];
   const ws = XLSX.utils.aoa_to_sheet(sd);
-  ws['!cols'] = [{wch:20},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10},{wch:16},{wch:16}];
+  ws['!cols'] = [{wch:20},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10},{wch:10},{wch:10},{wch:16},{wch:16}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ведомость доз');
   XLSX.writeFile(wb, 'farmlab_ведомость_доз.xlsx');
