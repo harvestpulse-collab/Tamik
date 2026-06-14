@@ -238,69 +238,41 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
   <!-- MODULE 2 -->
   <div id="m2" class="tab-panel">
     <div class="card">
-      <h2>Параметры расчёта</h2>
+      <h2>Расчёт доз внесения удобрений</h2>
 
       <div class="info-box" id="m2-info" style="display:none">
-        ✅ Данные по полям загружены из Модуля 1. Проверьте значения и при необходимости скорректируйте.
+        ✅ Данные по полям загружены из Модуля 1. Заполните оставшиеся параметры и нажмите «Рассчитать».
       </div>
 
-      <div class="section-title">Тип полива и глубина заделки</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Тип полива</label>
-          <select id="watering-type" onchange="updateCoeffs()">
-            <option value="bogara">Богара (без орошения)</option>
-            <option value="irrigation">Орошение</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Глубина заделки</label>
-          <select id="depth" onchange="updateCoeffs()">
-            <option value="10">0 см → Кн = 10</option>
-            <option value="11">5–7 см → Кн = 11</option>
-            <option value="12">10–12 см → Кн = 12</option>
-            <option value="13">&gt;20 см (зябь) → Кн = 13</option>
-            <option value="15">&gt;20 см (пар) → Кн = 15</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Км (коэф. перевода)</label>
-          <input type="number" id="km" value="3.6" step="0.1" min="1">
-          <span class="form-hint">h × V = 0.3 × 1.2 / 10 = 3.6</span>
-        </div>
-      </div>
+      <div class="section-title">Поля — ввод данных</div>
+      <p style="font-size:12px;color:#9ca3af;margin-bottom:10px;">
+        Формулы: Ду P = (В_P × Ур − P × Кп_P × Км_P) / Ку_P &nbsp;|&nbsp; Ду N = (В_N × Ур − NO3 × Кп_N × Км_N − Гумус × Кн) / Ку_N
+      </p>
 
-      <div class="form-grid" style="margin-top:0.5rem">
-        <div class="form-group">
-          <label>Кп (исп. из почвы)</label>
-          <input type="number" id="kp" value="0.1" step="0.05" min="0">
-          <span class="form-hint" id="kp-hint">Богара = 0.1</span>
-        </div>
-        <div class="form-group">
-          <label>Ку (исп. из удобрений)</label>
-          <input type="number" id="ku" value="0.3" step="0.05" min="0">
-          <span class="form-hint" id="ku-hint">Богара = 0.3</span>
-        </div>
-        <div class="form-group">
-          <label>Кн (нитрификация)</label>
-          <input type="number" id="kn" value="10" step="1" min="1">
-          <span class="form-hint">Из выбора глубины</span>
-        </div>
-      </div>
-
-      <div class="section-title" style="margin-top:1.5rem">Поля и культуры</div>
-      <div id="fields-container">
-        <div class="field-row header">
-          <div>Название поля</div>
-          <div>Культура</div>
-          <div>Ур-ть т/га</div>
-          <div>NO3-N мг/кг</div>
-          <div>P2O5 мг/кг</div>
-          <div>Гумус %</div>
-          <div>В_N кг/т</div>
-          <div>В_P кг/т</div>
-        </div>
-        <div id="field-rows"></div>
+      <div style="overflow-x:auto">
+        <table id="input-table" style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
+              <th style="padding:8px 10px;text-align:left;white-space:nowrap">Поле</th>
+              <th style="padding:8px 6px;white-space:nowrap">Культура</th>
+              <th style="padding:8px 6px;white-space:nowrap">Ур т/га</th>
+              <th style="padding:8px 6px;white-space:nowrap">NO3 мг/кг</th>
+              <th style="padding:8px 6px;white-space:nowrap">P мг/кг</th>
+              <th style="padding:8px 6px;white-space:nowrap">Гумус %</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">В_P</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">Кп_P</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">Км_P</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">Ку_P</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">В_N</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Кп_N</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Км_N</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Кн</th>
+              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Ку_N</th>
+              <th style="padding:8px 6px"></th>
+            </tr>
+          </thead>
+          <tbody id="field-rows"></tbody>
+        </table>
       </div>
 
       <div class="actions" style="margin-top:1rem">
@@ -465,122 +437,104 @@ document.getElementById('send-to-m2-btn').onclick = () => {
 let fieldRows = [];
 
 function updateCoeffs() {
-  const type = document.getElementById('watering-type').value;
-  const depth = document.getElementById('depth').value;
-  if (type === 'bogara') {
-    document.getElementById('kp').value = 0.1;
-    document.getElementById('ku').value = 0.3;
-    document.getElementById('kp-hint').textContent = 'Богара = 0.1';
-    document.getElementById('ku-hint').textContent = 'Богара = 0.3';
-  } else {
-    document.getElementById('kp').value = 0.3;
-    document.getElementById('ku').value = 0.5;
-    document.getElementById('kp-hint').textContent = 'Орошение = 0.3';
-    document.getElementById('ku-hint').textContent = 'Орошение = 0.5';
-  }
-  document.getElementById('kn').value = depth;
-}
+// Module 2 — per-row coefficients
+let fieldRows = [];
+let dosesData = null;
 
-function cropOptions(selected) {
-  return Object.keys(CROPS).map(c => `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`).join('');
+function inp(val, step, cb) {
+  return `<input type="number" value="${val}" step="${step}" min="0" style="width:55px;padding:4px 4px;border:1px solid #d1d5db;border-radius:5px;font-size:12px;text-align:center" oninput="${cb}">`;
 }
 
 function renderFieldRows() {
-  const container = document.getElementById('field-rows');
-  container.innerHTML = fieldRows.map((r, i) => `
-    <div class="field-row">
-      <input type="text" value="${r.name}" oninput="fieldRows[${i}].name=this.value" placeholder="Название поля">
-      <input type="text" value="${r.crop}" oninput="fieldRows[${i}].crop=this.value" placeholder="Культура">
-      <input type="number" value="${r.yield}" step="1" min="0" oninput="fieldRows[${i}].yield=+this.value" placeholder="т/га">
-      <input type="number" value="${r.no3}" step="0.1" min="0" oninput="fieldRows[${i}].no3=+this.value" placeholder="мг/кг">
-      <input type="number" value="${r.p}" step="0.1" min="0" oninput="fieldRows[${i}].p=+this.value" placeholder="мг/кг">
-      <input type="number" value="${r.som}" step="0.1" min="0" oninput="fieldRows[${i}].som=+this.value" placeholder="%">
-      <input type="number" value="${r.bn}" step="0.01" min="0" oninput="fieldRows[${i}].bn=+this.value" placeholder="В_N">
-      <input type="number" value="${r.bp}" step="0.01" min="0" oninput="fieldRows[${i}].bp=+this.value" placeholder="В_P">
-    </div>`).join('');
+  const tbody = document.getElementById('field-rows');
+  tbody.innerHTML = fieldRows.map((r, i) => `
+    <tr style="border-bottom:1px solid #f3f4f6">
+      <td style="padding:5px 8px"><input type="text" value="${r.name}" placeholder="Поле" style="width:120px;padding:4px 6px;border:1px solid #d1d5db;border-radius:5px;font-size:12px" oninput="fieldRows[${i}].name=this.value"></td>
+      <td style="padding:5px 4px"><input type="text" value="${r.crop}" placeholder="Культура" style="width:90px;padding:4px 5px;border:1px solid #d1d5db;border-radius:5px;font-size:12px" oninput="fieldRows[${i}].crop=this.value"></td>
+      <td style="padding:5px 4px">${inp(r.yield, 1,    `fieldRows[${i}].yield=+this.value`)}</td>
+      <td style="padding:5px 4px">${inp(r.no3,   0.1,  `fieldRows[${i}].no3=+this.value`)}</td>
+      <td style="padding:5px 4px">${inp(r.p,     0.1,  `fieldRows[${i}].p=+this.value`)}</td>
+      <td style="padding:5px 4px">${inp(r.som,   0.1,  `fieldRows[${i}].som=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#eff6ff">${inp(r.bp,   0.01, `fieldRows[${i}].bp=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#eff6ff">${inp(r.kp_p, 0.01, `fieldRows[${i}].kp_p=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#eff6ff">${inp(r.km_p, 0.1,  `fieldRows[${i}].km_p=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#eff6ff">${inp(r.ku_p, 0.01, `fieldRows[${i}].ku_p=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.bn,   0.01, `fieldRows[${i}].bn=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.kp_n, 0.01, `fieldRows[${i}].kp_n=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.km_n, 0.1,  `fieldRows[${i}].km_n=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.kn,   1,    `fieldRows[${i}].kn=+this.value`)}</td>
+      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.ku_n, 0.01, `fieldRows[${i}].ku_n=+this.value`)}</td>
+      <td style="padding:5px 4px"><button onclick="fieldRows.splice(${i},1);renderFieldRows()" style="padding:2px 7px;font-size:12px;color:#ef4444;border-color:#fca5a5;background:#fff">✕</button></td>
+    </tr>`).join('');
 }
 
-function addFieldRow(name='', crop='', yld=0, no3=0, p=0, som=0, bn=0, bp=0) {
-  fieldRows.push({ name, crop, yield: yld, no3, p, som, bn, bp });
+function defaultRow(name='', crop='', no3=0, p=0, som=0) {
+  return { name, crop, yield: 0, no3, p, som,
+    bp: 0, kp_p: 0.3, km_p: 3.6, ku_p: 0.5,
+    bn: 0, kp_n: 0.8, km_n: 4.8, kn: 15, ku_n: 0.9 };
+}
+
+function addFieldRow(name='', crop='', no3=0, p=0, som=0) {
+  fieldRows.push(defaultRow(name, crop, no3, p, som));
   renderFieldRows();
 }
 
 function populateM2FromM1(rows) {
-  fieldRows = rows.map(r => ({
-    name: r.field,
-    crop: '',
-    yield: 0,
-    no3: r.no3 !== null ? Math.round(r.no3 * 10) / 10 : 0,
-    p: r.p !== null ? Math.round(r.p * 10) / 10 : 0,
-    som: r.som !== null ? Math.round(r.som * 10) / 10 : 0,
-    bn: 0,
-    bp: 0
-  }));
+  fieldRows = rows.map(r => defaultRow(
+    r.field, '',
+    r.no3 !== null ? Math.round(r.no3 * 10) / 10 : 0,
+    r.p   !== null ? Math.round(r.p   * 10) / 10 : 0,
+    r.som !== null ? Math.round(r.som * 10) / 10 : 0
+  ));
   renderFieldRows();
 }
 
-// Initial empty row
 addFieldRow();
 
-let dosesData = null;
-
 function calcDoses() {
-  const Km = parseFloat(document.getElementById('km').value);
-  const Kp = parseFloat(document.getElementById('kp').value);
-  const Ku = parseFloat(document.getElementById('ku').value);
-  const Kn = parseFloat(document.getElementById('kn').value);
   const status2 = document.getElementById('status2');
-
   if (!fieldRows.length) { status2.textContent = 'Добавьте хотя бы одно поле.'; status2.className = 'status err'; return; }
 
   const results = fieldRows.map(r => {
-    const Vn = r.bn;
-    const Vp = r.bp;
-    const Sp_n = r.no3 / 10;
-    const Sp_p = r.p / 10;
-    let duN = null, duP = null;
-    if (r.yield > 0 && Vn > 0) {
-      duN = (Vn * r.yield - Sp_n * Km * Kp - r.som * Kn) / Ku;
-    }
-    if (r.yield > 0 && Vp > 0) {
-      duP = (Vp * r.yield - Sp_p * Km * Kp) / Ku;
-    }
-    return { ...r, duN, duP };
+    let duP = null, duN = null;
+    if (r.yield > 0 && r.bp > 0 && r.ku_p > 0)
+      duP = (r.bp * r.yield - r.p   * r.kp_p * r.km_p) / r.ku_p;
+    if (r.yield > 0 && r.bn > 0 && r.ku_n > 0)
+      duN = (r.bn * r.yield - r.no3 * r.kp_n * r.km_n - r.som * r.kn) / r.ku_n;
+    return { ...r, duP, duN };
   });
 
   dosesData = results;
-
   const fmt = v => v === null ? '—' : Math.round(v * 10) / 10;
   const dosesTable = document.getElementById('doses-table');
   dosesTable.innerHTML = `<thead><tr>
     <th>Название поля</th><th>Культура</th><th>Ур-ть т/га</th>
-    <th>NO3-N мг/кг</th><th>P2O5 мг/кг</th><th>Гумус %</th>
-    <th>В_N кг/т</th><th>В_P кг/т</th>
-    <th>Ду N кг д.в./га</th><th>Ду P кг д.в./га</th>
+    <th>NO3-N мг/кг</th><th>P мг/кг</th><th>Гумус %</th>
+    <th>Ду P кг д.в./га</th><th>Ду N кг д.в./га</th>
   </tr></thead><tbody>
   ${results.map(r => `<tr>
     <td>${r.name}</td><td>${r.crop}</td><td>${r.yield}</td>
     <td>${r.no3}</td><td>${r.p}</td><td>${r.som}</td>
-    <td>${r.bn}</td><td>${r.bp}</td>
-    <td><span class="result-badge badge-n">${fmt(r.duN)}</span></td>
     <td><span class="result-badge badge-p">${fmt(r.duP)}</span></td>
+    <td><span class="result-badge badge-n">${fmt(r.duN)}</span></td>
   </tr>`).join('')}
   </tbody>`;
 
   document.getElementById('doses-result').style.display = 'block';
-  status2.textContent = `Рассчитано полей: ${results.length}. Км=${Km}, Кп=${Kp}, Ку=${Ku}, Кн=${Kn}`;
+  status2.textContent = `Рассчитано полей: ${results.length}`;
   status2.className = 'status ok';
 }
 
 document.getElementById('dl-doses-btn').onclick = () => {
   if (!dosesData) return;
-  const hdr = ['Название поля', 'Культура', 'Урожайность т/га', 'NO3-N мг/кг', 'P2O5 мг/кг', 'Гумус %', 'В_N кг/т', 'В_P кг/т', 'Ду N кг д.в./га', 'Ду P кг д.в./га'];
-  const sd = [hdr, ...dosesData.map(r => [r.name, r.crop, r.yield, r.no3, r.p, r.som, r.bn, r.bp,
-    r.duN !== null ? Math.round(r.duN * 10) / 10 : '',
-    r.duP !== null ? Math.round(r.duP * 10) / 10 : ''
+  const hdr = ['Название поля','Культура','Урожайность т/га','NO3-N мг/кг','P мг/кг','Гумус %','Ду P кг д.в./га','Ду N кг д.в./га'];
+  const sd = [hdr, ...dosesData.map(r => [
+    r.name, r.crop, r.yield, r.no3, r.p, r.som,
+    r.duP !== null ? Math.round(r.duP*10)/10 : '',
+    r.duN !== null ? Math.round(r.duN*10)/10 : ''
   ])];
   const ws = XLSX.utils.aoa_to_sheet(sd);
-  ws['!cols'] = [{wch:20},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10},{wch:10},{wch:10},{wch:16},{wch:16}];
+  ws['!cols'] = [{wch:22},{wch:12},{wch:14},{wch:14},{wch:12},{wch:10},{wch:18},{wch:18}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ведомость доз');
   XLSX.writeFile(wb, 'farmlab_ведомость_доз.xlsx');
