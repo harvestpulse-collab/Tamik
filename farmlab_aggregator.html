@@ -192,8 +192,8 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('m1')">📊 Модуль 1 — Сводная таблица</button>
-    <button class="tab-btn" onclick="switchTab('m2')">🧮 Модуль 2 — Расчёт доз</button>
+    <button class="tab-btn active" onclick="switchTab('m1', this)">📊 Модуль 1 — Сводная таблица</button>
+    <button class="tab-btn" onclick="switchTab('m2', this)">🧮 Модуль 2 — Расчёт доз</button>
   </div>
 
   <!-- MODULE 1 -->
@@ -302,11 +302,11 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
 
 <script>
 // ===== TAB SWITCHING =====
-function switchTab(id) {
+function switchTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
 // ===== MODULE 1 =====
@@ -432,11 +432,6 @@ document.getElementById('send-to-m2-btn').onclick = () => {
 
 // ===== MODULE 2 =====
 
-// Вынос вводится вручную пользователем
-
-let fieldRows = [];
-
-function updateCoeffs() {
 // Module 2 — per-row coefficients
 let fieldRows = [];
 let dosesData = null;
