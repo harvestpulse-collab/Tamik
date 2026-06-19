@@ -192,8 +192,8 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('m1', this)">📊 Модуль 1 — Сводная таблица</button>
-    <button class="tab-btn" onclick="switchTab('m2', this)">🧮 Модуль 2 — Расчёт доз</button>
+    <button class="tab-btn active" onclick="switchTab('m1')">📊 Модуль 1 — Сводная таблица</button>
+    <button class="tab-btn" onclick="switchTab('m2')">🧮 Модуль 2 — Расчёт доз</button>
   </div>
 
   <!-- MODULE 1 -->
@@ -302,18 +302,25 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
 
 <script>
 // ===== TAB SWITCHING =====
-function switchTab(id, btn) {
+function switchTab(id) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (btn) btn.classList.add('active');
+  event.target.classList.add('active');
 }
 
 // ===== MODULE 1 =====
 const COL_FIELD = 'Название поля';
-const COL_NO3   = 'Азот нитратный (NO3-N) [mg/kg]';
-const COL_P2O5  = 'Фосфор (P2O5) [mg/kg]';
-const COL_SOM   = 'Органическое вещество почвы (SOM) [%]';
+
+// Гибкий поиск колонки по подстроке — разные экспорты FarmLab используют разные единицы
+function findCol(row, substrings) {
+  const keys = Object.keys(row);
+  for (const sub of substrings) {
+    const found = keys.find(k => k.toLowerCase().includes(sub.toLowerCase()));
+    if (found) return found;
+  }
+  return null;
+}
 
 let files = [];
 let resultData = null;
@@ -366,17 +373,25 @@ runBtn.onclick = async () => {
 
   try {
     const agg = {};
+    let pUnitWarning = false;
     for (const file of files) {
       const buf  = await file.arrayBuffer();
       const wb   = XLSX.read(buf, { type: 'array' });
       const ws   = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { defval: null });
+      if (!rows.length) continue;
+
+      const colNo3 = findCol(rows[0], ['азот нитратный', 'no3-n', 'no3']);
+      const colP   = findCol(rows[0], ['фосфор', 'p2o5']);
+      const colSom = findCol(rows[0], ['органическое вещество', 'som']);
+      if (colP && colP.toLowerCase().includes('kg/ha')) pUnitWarning = true;
+
       rows.forEach(row => {
         const field = row[COL_FIELD];
         if (!field) return;
-        const no3 = parseFloat(row[COL_NO3]);
-        const p   = parseFloat(row[COL_P2O5]);
-        const som = parseFloat(row[COL_SOM]);
+        const no3 = colNo3 ? parseFloat(row[colNo3]) : NaN;
+        const p   = colP   ? parseFloat(row[colP])   : NaN;
+        const som = colSom ? parseFloat(row[colSom]) : NaN;
         if (!agg[field]) agg[field] = { no3: [], p: [], som: [] };
         if (!isNaN(no3)) agg[field].no3.push(no3);
         if (!isNaN(p))   agg[field].p.push(p);
@@ -400,7 +415,8 @@ runBtn.onclick = async () => {
     </tbody>`;
 
     resultSec.style.display = 'block';
-    status1.textContent = `Готово — файлов: ${files.length}, полей: ${rows.length}`;
+    status1.textContent = `Готово — файлов: ${files.length}, полей: ${rows.length}` +
+      (pUnitWarning ? '. ⚠️ Внимание: в одном из файлов фосфор указан в [kg/ha], а не [mg/kg] — значения могут быть несопоставимы.' : '');
     status1.className = 'status ok';
   } catch (e) { status1.textContent = 'Ошибка: ' + e.message; status1.classList.add('err'); }
   runBtn.disabled = false;
@@ -432,6 +448,7 @@ document.getElementById('send-to-m2-btn').onclick = () => {
 
 // ===== MODULE 2 =====
 
+// Вынос вводится вручную пользователем
 // Module 2 — per-row coefficients
 let fieldRows = [];
 let dosesData = null;
