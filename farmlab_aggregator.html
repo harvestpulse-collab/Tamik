@@ -182,6 +182,97 @@ tbody tr.total td { font-weight: 600; background: #f0f4ff; border-top: 2px solid
 }
 
 footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; }
+
+/* Module 2 placeholder */
+.placeholder-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 4rem 1.5rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.orbit-wrap {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbit-core {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #818cf8, #4f46e5);
+  box-shadow: 0 0 24px 6px rgba(99,102,241,0.45);
+  animation: pulse-core 2.2s ease-in-out infinite;
+}
+
+@keyframes pulse-core {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 24px 6px rgba(99,102,241,0.45); }
+  50% { transform: scale(1.15); box-shadow: 0 0 34px 10px rgba(99,102,241,0.6); }
+}
+
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed #c7d2fe;
+}
+
+.ring1 { width: 80px;  height: 80px;  animation: spin 4s linear infinite; }
+.ring2 { width: 124px; height: 124px; animation: spin 7s linear infinite reverse; }
+.ring3 { width: 168px; height: 168px; animation: spin 11s linear infinite; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.orbit-dot {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #6366f1;
+  box-shadow: 0 0 10px 2px rgba(99,102,241,0.6);
+}
+
+.ring2 .orbit-dot { background: #a855f7; box-shadow: 0 0 10px 2px rgba(168,85,247,0.6); }
+.ring3 .orbit-dot { background: #06b6d4; box-shadow: 0 0 10px 2px rgba(6,182,212,0.6); }
+
+.placeholder-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #6366f1, #a855f7, #6366f1);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.placeholder-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #9ca3af;
+}
 </style>
 </head>
 <body>
@@ -227,73 +318,21 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Скачать .xlsx
         </button>
-        <button class="btn-success" id="send-to-m2-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          Передать в Модуль 2
-        </button>
       </div>
     </div>
   </div>
 
-  <!-- MODULE 2 -->
+  <!-- MODULE 2 — заглушка -->
   <div id="m2" class="tab-panel">
-    <div class="card">
-      <h2>Расчёт доз внесения удобрений</h2>
-
-      <div class="info-box" id="m2-info" style="display:none">
-        ✅ Данные по полям загружены из Модуля 1. Заполните оставшиеся параметры и нажмите «Рассчитать».
+    <div class="placeholder-card">
+      <div class="orbit-wrap">
+        <div class="orbit-core"></div>
+        <div class="orbit-ring ring1"><span class="orbit-dot"></span></div>
+        <div class="orbit-ring ring2"><span class="orbit-dot"></span></div>
+        <div class="orbit-ring ring3"><span class="orbit-dot"></span></div>
       </div>
-
-      <div class="section-title">Поля — ввод данных</div>
-      <p style="font-size:12px;color:#9ca3af;margin-bottom:10px;">
-        Формулы: Ду P = (В_P × Ур − P × Кп_P × Км_P) / Ку_P &nbsp;|&nbsp; Ду N = (В_N × Ур − NO3 × Кп_N × Км_N − Гумус × Кн) / Ку_N
-      </p>
-
-      <div style="overflow-x:auto">
-        <table id="input-table" style="width:100%;border-collapse:collapse;font-size:13px;">
-          <thead>
-            <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
-              <th style="padding:8px 10px;text-align:left;white-space:nowrap">Поле</th>
-              <th style="padding:8px 6px;white-space:nowrap">Культура</th>
-              <th style="padding:8px 6px;white-space:nowrap">Ур т/га</th>
-              <th style="padding:8px 6px;white-space:nowrap">NO3 мг/кг</th>
-              <th style="padding:8px 6px;white-space:nowrap">P мг/кг</th>
-              <th style="padding:8px 6px;white-space:nowrap">Гумус %</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">В_P</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">Кп_P</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">Км_P</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dbeafe">Ку_P</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">В_N</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Кп_N</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Км_N</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Кн</th>
-              <th style="padding:8px 6px;white-space:nowrap;background:#dcfce7">Ку_N</th>
-              <th style="padding:8px 6px"></th>
-            </tr>
-          </thead>
-          <tbody id="field-rows"></tbody>
-        </table>
-      </div>
-
-      <div class="actions" style="margin-top:1rem">
-        <button class="btn-primary" onclick="calcDoses()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3M9 7l6 6M15 7h-6v6"/></svg>
-          Рассчитать дозы
-        </button>
-        <button onclick="addFieldRow()">+ Добавить поле</button>
-      </div>
-      <div class="status" id="status2"></div>
-    </div>
-
-    <div class="card" id="doses-result" style="display:none">
-      <h2>Результат — Ведомость доз внесения</h2>
-      <div class="table-wrap"><table id="doses-table"></table></div>
-      <div class="dl-row">
-        <button id="dl-doses-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Скачать ведомость .xlsx
-        </button>
-      </div>
+      <h2 class="placeholder-title">Я ЖДУ ОТ ТЕБЯ ДАННЫЕ</h2>
+      <p class="placeholder-sub">Этот модуль находится в разработке</p>
     </div>
   </div>
 
@@ -434,122 +473,6 @@ dlBtn.onclick = () => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Сводная');
   XLSX.writeFile(wb, 'farmlab_сводная.xlsx');
-};
-
-document.getElementById('send-to-m2-btn').onclick = () => {
-  if (!resultData) return;
-  populateM2FromM1(resultData.rows);
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('m2').classList.add('active');
-  document.querySelectorAll('.tab-btn')[1].classList.add('active');
-  document.getElementById('m2-info').style.display = 'block';
-};
-
-// ===== MODULE 2 =====
-
-// Вынос вводится вручную пользователем
-// Module 2 — per-row coefficients
-let fieldRows = [];
-let dosesData = null;
-
-function inp(val, step, cb) {
-  return `<input type="number" value="${val}" step="${step}" min="0" style="width:55px;padding:4px 4px;border:1px solid #d1d5db;border-radius:5px;font-size:12px;text-align:center" oninput="${cb}">`;
-}
-
-function renderFieldRows() {
-  const tbody = document.getElementById('field-rows');
-  tbody.innerHTML = fieldRows.map((r, i) => `
-    <tr style="border-bottom:1px solid #f3f4f6">
-      <td style="padding:5px 8px"><input type="text" value="${r.name}" placeholder="Поле" style="width:120px;padding:4px 6px;border:1px solid #d1d5db;border-radius:5px;font-size:12px" oninput="fieldRows[${i}].name=this.value"></td>
-      <td style="padding:5px 4px"><input type="text" value="${r.crop}" placeholder="Культура" style="width:90px;padding:4px 5px;border:1px solid #d1d5db;border-radius:5px;font-size:12px" oninput="fieldRows[${i}].crop=this.value"></td>
-      <td style="padding:5px 4px">${inp(r.yield, 1,    `fieldRows[${i}].yield=+this.value`)}</td>
-      <td style="padding:5px 4px">${inp(r.no3,   0.1,  `fieldRows[${i}].no3=+this.value`)}</td>
-      <td style="padding:5px 4px">${inp(r.p,     0.1,  `fieldRows[${i}].p=+this.value`)}</td>
-      <td style="padding:5px 4px">${inp(r.som,   0.1,  `fieldRows[${i}].som=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#eff6ff">${inp(r.bp,   0.01, `fieldRows[${i}].bp=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#eff6ff">${inp(r.kp_p, 0.01, `fieldRows[${i}].kp_p=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#eff6ff">${inp(r.km_p, 0.1,  `fieldRows[${i}].km_p=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#eff6ff">${inp(r.ku_p, 0.01, `fieldRows[${i}].ku_p=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.bn,   0.01, `fieldRows[${i}].bn=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.kp_n, 0.01, `fieldRows[${i}].kp_n=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.km_n, 0.1,  `fieldRows[${i}].km_n=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.kn,   1,    `fieldRows[${i}].kn=+this.value`)}</td>
-      <td style="padding:5px 4px;background:#f0fdf4">${inp(r.ku_n, 0.01, `fieldRows[${i}].ku_n=+this.value`)}</td>
-      <td style="padding:5px 4px"><button onclick="fieldRows.splice(${i},1);renderFieldRows()" style="padding:2px 7px;font-size:12px;color:#ef4444;border-color:#fca5a5;background:#fff">✕</button></td>
-    </tr>`).join('');
-}
-
-function defaultRow(name='', crop='', no3=0, p=0, som=0) {
-  return { name, crop, yield: 0, no3, p, som,
-    bp: 0, kp_p: 0.3, km_p: 3.6, ku_p: 0.5,
-    bn: 0, kp_n: 0.8, km_n: 4.8, kn: 15, ku_n: 0.9 };
-}
-
-function addFieldRow(name='', crop='', no3=0, p=0, som=0) {
-  fieldRows.push(defaultRow(name, crop, no3, p, som));
-  renderFieldRows();
-}
-
-function populateM2FromM1(rows) {
-  fieldRows = rows.map(r => defaultRow(
-    r.field, '',
-    r.no3 !== null ? Math.round(r.no3 * 10) / 10 : 0,
-    r.p   !== null ? Math.round(r.p   * 10) / 10 : 0,
-    r.som !== null ? Math.round(r.som * 10) / 10 : 0
-  ));
-  renderFieldRows();
-}
-
-addFieldRow();
-
-function calcDoses() {
-  const status2 = document.getElementById('status2');
-  if (!fieldRows.length) { status2.textContent = 'Добавьте хотя бы одно поле.'; status2.className = 'status err'; return; }
-
-  const results = fieldRows.map(r => {
-    let duP = null, duN = null;
-    if (r.yield > 0 && r.bp > 0 && r.ku_p > 0)
-      duP = (r.bp * r.yield - r.p   * r.kp_p * r.km_p) / r.ku_p;
-    if (r.yield > 0 && r.bn > 0 && r.ku_n > 0)
-      duN = (r.bn * r.yield - r.no3 * r.kp_n * r.km_n - r.som * r.kn) / r.ku_n;
-    return { ...r, duP, duN };
-  });
-
-  dosesData = results;
-  const fmt = v => v === null ? '—' : Math.round(v * 10) / 10;
-  const dosesTable = document.getElementById('doses-table');
-  dosesTable.innerHTML = `<thead><tr>
-    <th>Название поля</th><th>Культура</th><th>Ур-ть т/га</th>
-    <th>NO3-N мг/кг</th><th>P мг/кг</th><th>Гумус %</th>
-    <th>Ду P кг д.в./га</th><th>Ду N кг д.в./га</th>
-  </tr></thead><tbody>
-  ${results.map(r => `<tr>
-    <td>${r.name}</td><td>${r.crop}</td><td>${r.yield}</td>
-    <td>${r.no3}</td><td>${r.p}</td><td>${r.som}</td>
-    <td><span class="result-badge badge-p">${fmt(r.duP)}</span></td>
-    <td><span class="result-badge badge-n">${fmt(r.duN)}</span></td>
-  </tr>`).join('')}
-  </tbody>`;
-
-  document.getElementById('doses-result').style.display = 'block';
-  status2.textContent = `Рассчитано полей: ${results.length}`;
-  status2.className = 'status ok';
-}
-
-document.getElementById('dl-doses-btn').onclick = () => {
-  if (!dosesData) return;
-  const hdr = ['Название поля','Культура','Урожайность т/га','NO3-N мг/кг','P мг/кг','Гумус %','Ду P кг д.в./га','Ду N кг д.в./га'];
-  const sd = [hdr, ...dosesData.map(r => [
-    r.name, r.crop, r.yield, r.no3, r.p, r.som,
-    r.duP !== null ? Math.round(r.duP*10)/10 : '',
-    r.duN !== null ? Math.round(r.duN*10)/10 : ''
-  ])];
-  const ws = XLSX.utils.aoa_to_sheet(sd);
-  ws['!cols'] = [{wch:22},{wch:12},{wch:14},{wch:14},{wch:12},{wch:10},{wch:18},{wch:18}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Ведомость доз');
-  XLSX.writeFile(wb, 'farmlab_ведомость_доз.xlsx');
 };
 </script>
 </body>
