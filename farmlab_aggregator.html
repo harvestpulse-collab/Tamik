@@ -8,25 +8,102 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --bg: #f4f6f9;
+    --text: #1a1a1a;
+    --text-secondary: #666;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --card-bg: #fff;
+    --card-border: #e5e7eb;
+    --border: #d1d5db;
+    --border-light: #f3f4f6;
+    --hover-bg: #f3f4f6;
+    --input-bg: #fff;
+    --row-hover: #f9fafb;
+    --thead-bg: #f9fafb;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-light: #eef2ff;
+    --accent-text: #4338ca;
+    --total-bg: #f0f4ff;
+    --danger: #ef4444;
+    --success: #16a34a;
+    --warn-bg: #fffbeb;
+    --warn-border: #fde68a;
+    --warn-text: #92400e;
+    --bogara-bg: #fef3c7;
+    --bogara-text: #92400e;
+    --orosh-bg: #dbeafe;
+    --orosh-text: #1e40af;
+    --dropzone-bg: #fafafa;
+    --dropzone-hover-bg: #f0f4ff;
+    --field-row-bg: #fafafa;
+  }
+
+  [data-theme="dark"] {
+    --bg: #16181d;
+    --text: #e8e9ec;
+    --text-secondary: #9a9ea8;
+    --text-muted: #9499a3;
+    --text-dim: #6b7078;
+    --card-bg: #1e2128;
+    --card-border: #2c303a;
+    --border: #383d49;
+    --border-light: #2a2e37;
+    --hover-bg: #2a2e37;
+    --input-bg: #20232b;
+    --row-hover: #242830;
+    --thead-bg: #20232b;
+    --accent: #818cf8;
+    --accent-hover: #6366f1;
+    --accent-light: #2a2c45;
+    --accent-text: #b4baf7;
+    --total-bg: #232542;
+    --danger: #f87171;
+    --success: #4ade80;
+    --warn-bg: #3a2f12;
+    --warn-border: #5a4a1a;
+    --warn-text: #fbbf24;
+    --bogara-bg: #4a3a14;
+    --bogara-text: #fbbf24;
+    --orosh-bg: #1e3a5f;
+    --orosh-text: #93c5fd;
+    --dropzone-bg: #1a1d23;
+    --dropzone-hover-bg: #232a45;
+    --field-row-bg: #1a1d23;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    background: #f4f6f9;
-    color: #1a1a1a;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
     padding: 2rem 1rem;
+    transition: background 0.2s, color 0.2s;
   }
 
   .container { max-width: 980px; margin: 0 auto; }
 
-  header { margin-bottom: 1.5rem; }
-  header h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; }
-  header p { font-size: 14px; color: #666; margin-top: 4px; }
+  header { margin-bottom: 1.5rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+  header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 12px; font-size: 13px; font-weight: 500;
+    border-radius: 8px; cursor: pointer; flex-shrink: 0;
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted);
+    transition: background 0.12s;
+  }
+  .theme-toggle:hover { background: var(--hover-bg); }
+  .theme-toggle svg { width: 15px; height: 15px; }
 
   .tabs {
     display: flex;
     gap: 4px;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--card-border);
   }
   .tab-btn {
     padding: 10px 18px;
@@ -36,49 +113,50 @@
     border: none;
     border-bottom: 2px solid transparent;
     cursor: pointer;
-    color: #6b7280;
+    color: var(--text-muted);
     margin-bottom: -1px;
   }
-  .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
-  .tab-btn:hover:not(.active) { color: #374151; }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
 
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
   .card {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--card-border);
     padding: 1.5rem;
     margin-bottom: 1.25rem;
+    transition: background 0.2s, border-color 0.2s;
   }
 
-  .card h2 { font-size: 15px; font-weight: 600; color: #374151; margin-bottom: 12px; }
-  .card .sub { font-size: 13px; color: #6b7280; margin-top: -8px; margin-bottom: 14px; }
+  .card h2 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .card .sub { font-size: 13px; color: var(--text-muted); margin-top: -8px; margin-bottom: 14px; }
 
   .drop-zone {
-    border: 2px dashed #d1d5db;
+    border: 2px dashed var(--border);
     border-radius: 10px;
     padding: 2rem;
     text-align: center;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
-    background: #fafafa;
+    background: var(--dropzone-bg);
   }
-  .drop-zone:hover, .drop-zone.over { background: #f0f4ff; border-color: #6366f1; }
-  .drop-zone svg { width: 36px; height: 36px; color: #9ca3af; margin-bottom: 10px; }
-  .drop-zone p { font-size: 14px; color: #6b7280; }
-  .drop-zone span { color: #6366f1; font-weight: 500; cursor: pointer; text-decoration: underline; }
+  .drop-zone:hover, .drop-zone.over { background: var(--dropzone-hover-bg); border-color: var(--accent); }
+  .drop-zone svg { width: 36px; height: 36px; color: var(--text-dim); margin-bottom: 10px; }
+  .drop-zone p { font-size: 14px; color: var(--text-muted); }
+  .drop-zone span { color: var(--accent); font-weight: 500; cursor: pointer; text-decoration: underline; }
 
   .file-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 6px; }
   .file-chip {
     display: flex; align-items: center; gap: 8px; font-size: 13px;
-    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
-    padding: 7px 12px; color: #374151;
+    background: var(--thead-bg); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 7px 12px; color: var(--text);
   }
-  .file-chip svg { color: #9ca3af; flex-shrink: 0; }
-  .file-chip .rm { margin-left: auto; cursor: pointer; color: #9ca3af; background: none; border: none; font-size: 16px; line-height: 1; padding: 0 2px; }
-  .file-chip .rm:hover { color: #ef4444; }
+  .file-chip svg { color: var(--text-dim); flex-shrink: 0; }
+  .file-chip .rm { margin-left: auto; cursor: pointer; color: var(--text-dim); background: none; border: none; font-size: 16px; line-height: 1; padding: 0 2px; }
+  .file-chip .rm:hover { color: var(--danger); }
 
   .actions { display: flex; gap: 10px; margin-top: 1.25rem; align-items: center; flex-wrap: wrap; }
 
@@ -86,43 +164,43 @@
     display: inline-flex; align-items: center; gap: 6px;
     padding: 9px 18px; font-size: 14px; font-weight: 500;
     border-radius: 8px; cursor: pointer;
-    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text);
     transition: background 0.12s;
   }
-  button:hover { background: #f3f4f6; }
+  button:hover { background: var(--hover-bg); }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-primary { background: #6366f1; color: #fff; border-color: #6366f1; }
-  .btn-primary:hover { background: #4f46e5; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-hover); }
   .btn-sm { padding: 6px 12px; font-size: 13px; }
 
-  .status { font-size: 13px; color: #6b7280; margin-top: 10px; min-height: 18px; }
-  .status.err { color: #ef4444; }
-  .status.ok { color: #16a34a; }
+  .status { font-size: 13px; color: var(--text-muted); margin-top: 10px; min-height: 18px; }
+  .status.err { color: var(--danger); }
+  .status.ok { color: var(--success); }
 
   .result-section { display: none; }
   .table-wrap { overflow-x: auto; }
 
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   thead th {
-    background: #f9fafb; font-weight: 600; color: #374151; text-align: left;
-    padding: 9px 12px; border-bottom: 2px solid #e5e7eb; white-space: nowrap;
+    background: var(--thead-bg); font-weight: 600; color: var(--text); text-align: left;
+    padding: 9px 12px; border-bottom: 2px solid var(--card-border); white-space: nowrap;
   }
-  tbody td { padding: 9px 12px; border-bottom: 1px solid #f3f4f6; color: #1a1a1a; }
-  tbody tr:hover td { background: #f9fafb; }
-  tbody tr.total td { font-weight: 600; background: #f0f4ff; border-top: 2px solid #e5e7eb; border-bottom: none; }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border-light); color: var(--text); }
+  tbody tr:hover td { background: var(--row-hover); }
+  tbody tr.total td { font-weight: 600; background: var(--total-bg); border-top: 2px solid var(--card-border); border-bottom: none; }
 
   .dl-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 
-  footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; }
+  footer { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 2rem; }
 
   /* Module 2 specific */
   .empty-hint {
-    font-size: 13.5px; color: #6b7280; background: #fffbeb; border: 1px solid #fde68a;
+    font-size: 13.5px; color: var(--text-muted); background: var(--warn-bg); border: 1px solid var(--warn-border);
     border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem;
   }
-  .empty-hint b { color: #92400e; }
+  .empty-hint b { color: var(--warn-text); }
 
-  .field-row { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; background: #fafafa; }
+  .field-row { border: 1px solid var(--card-border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; background: var(--field-row-bg); }
   .field-row-grid {
     display: grid;
     grid-template-columns: 1.4fr 1fr 1.3fr 1fr auto;
@@ -133,17 +211,17 @@
     .field-row-grid { grid-template-columns: 1fr 1fr; }
   }
   .field-group label {
-    display: block; font-size: 11.5px; font-weight: 600; color: #6b7280;
+    display: block; font-size: 11.5px; font-weight: 600; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 4px;
   }
   .field-group input[type="text"],
   .field-group input[type="number"] {
     width: 100%; padding: 7px 10px; font-size: 13.5px;
-    border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #1a1a1a;
+    border: 1px solid var(--border); border-radius: 7px; background: var(--input-bg); color: var(--text);
   }
   .field-group select {
     width: 100%; padding: 8px 32px 8px 10px; font-size: 13.5px;
-    border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #1a1a1a;
+    border: 1px solid var(--border); border-radius: 7px; background: var(--input-bg); color: var(--text);
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -151,26 +229,26 @@
     cursor: pointer;
     transition: border-color 0.12s;
   }
-  .field-group select:hover { border-color: #a5b4fc; }
-  .field-group input:focus, .field-group select:focus { outline: 2px solid #c7d2fe; border-color: #6366f1; }
+  .field-group select:hover { border-color: var(--accent); }
+  .field-group input:focus, .field-group select:focus { outline: 2px solid var(--accent-light); border-color: var(--accent); }
 
-  .irr-toggle { display: flex; border: 1px solid #d1d5db; border-radius: 7px; overflow: hidden; }
+  .irr-toggle { display: flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
   .irr-toggle button {
     flex: 1; border: none; border-radius: 0; padding: 7px 8px; font-size: 12.5px;
-    background: #fff; color: #6b7280; margin: 0;
+    background: var(--input-bg); color: var(--text-muted); margin: 0;
   }
-  .irr-toggle button.active.bogara { background: #fef3c7; color: #92400e; font-weight: 600; }
-  .irr-toggle button.active.oroshenie { background: #dbeafe; color: #1e40af; font-weight: 600; }
+  .irr-toggle button.active.bogara { background: var(--bogara-bg); color: var(--bogara-text); font-weight: 600; }
+  .irr-toggle button.active.oroshenie { background: var(--orosh-bg); color: var(--orosh-text); font-weight: 600; }
 
   .src-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .src-tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #eef2ff; color: #4338ca; }
+  .src-tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--accent-light); color: var(--accent-text); }
 
-  .remove-field { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; padding: 4px 8px; }
-  .remove-field:hover { color: #ef4444; }
+  .remove-field { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 18px; padding: 4px 8px; }
+  .remove-field:hover { color: var(--danger); }
 
   details.coef-table { margin-top: 1.25rem; }
   details.coef-table summary {
-    cursor: pointer; font-size: 14px; font-weight: 500; color: #6366f1;
+    cursor: pointer; font-size: 14px; font-weight: 500; color: var(--accent);
     padding: 8px 0; list-style: none; display: flex; align-items: center; gap: 6px;
   }
   details.coef-table summary::-webkit-details-marker { display: none; }
@@ -179,21 +257,22 @@
 
   .coef-sub-tabs { display: flex; gap: 6px; margin: 10px 0; }
   .coef-sub-tab {
-    padding: 6px 14px; font-size: 12.5px; border-radius: 7px; border: 1px solid #d1d5db;
-    background: #fff; color: #6b7280; cursor: pointer;
+    padding: 6px 14px; font-size: 12.5px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--card-bg); color: var(--text-muted); cursor: pointer;
   }
-  .coef-sub-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .coef-sub-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   table.coef-editable input {
     width: 64px; padding: 4px 6px; font-size: 12.5px;
-    border: 1px solid #e5e7eb; border-radius: 5px; text-align: right;
+    border: 1px solid var(--card-border); border-radius: 5px; text-align: right;
+    background: var(--input-bg); color: var(--text);
   }
   table.coef-editable td:first-child input { width: 130px; text-align: left; }
   table.coef-editable th { font-size: 11.5px; white-space: nowrap; }
 
   .formula-box {
-    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
-    padding: 12px 14px; font-size: 12.5px; color: #4b5563; margin-top: 10px;
+    background: var(--thead-bg); border: 1px solid var(--card-border); border-radius: 8px;
+    padding: 12px 14px; font-size: 12.5px; color: var(--text-muted); margin-top: 10px;
     font-family: 'SF Mono', Consolas, monospace; line-height: 1.7;
   }
 </style>
@@ -202,8 +281,14 @@
 
 <div class="container">
   <header>
-    <h1>FarmLab — Инструменты агронома</h1>
-    <p>Модуль 1: сводная по полям · Модуль 2: расчёт доз внесения удобрений</p>
+    <div>
+      <h1>FarmLab — Инструменты агронома</h1>
+      <p>Модуль 1: сводная по полям · Модуль 2: расчёт доз внесения удобрений</p>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span id="theme-label">Тёмная тема</span>
+    </button>
   </header>
 
   <div class="tabs">
@@ -288,9 +373,9 @@
         </button>
       </div>
       <div class="formula-box">
-        Ду N = (Вынос N × Урожайность − NO3-N × Кв × Кп − Гумус × Кн) / Ку<br>
         Ду P = (Вынос P × Урожайность − P2O5 × Кв × Кп) / Ку<br>
-        <span style="color:#9ca3af">NO3-N, P2O5 и Гумус берутся напрямую из FarmLab (Модуль 1), без пересчёта единиц.</span>
+        Ду N = (Вынос N × Урожайность − NO3-N × Кв × Кп − Гумус × Кн) / Ку<br>
+        <span style="color:var(--text-dim)">NO3-N, P2O5 и Гумус берутся напрямую из FarmLab (Модуль 1), без пересчёта единиц.</span>
       </div>
     </div>
 
@@ -317,6 +402,36 @@
 </div>
 
 <script>
+/* ============================================================
+   THEME (light / dark)
+============================================================ */
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeLabel = document.getElementById('theme-label');
+const themeIcon = document.getElementById('theme-icon');
+
+const SUN_PATH = '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+const MOON_PATH = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeIcon.innerHTML = MOON_PATH;
+    themeLabel.textContent = 'Светлая тема';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    themeIcon.innerHTML = SUN_PATH;
+    themeLabel.textContent = 'Тёмная тема';
+  }
+}
+
+let currentTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+applyTheme(currentTheme);
+
+themeToggleBtn.onclick = () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(currentTheme);
+};
+
 /* ============================================================
    SHARED STATE
 ============================================================ */
@@ -432,10 +547,22 @@ runBtn.onclick = async () => {
         const no3 = colNo3 ? parseFloat(row[colNo3]) : NaN;
         const p   = colP   ? parseFloat(row[colP])   : NaN;
         const som = colSom ? parseFloat(row[colSom]) : NaN;
-        if (!agg[field]) agg[field] = { no3: [], p: [], som: [], no3Units: new Set(), pUnits: new Set(), somUnits: new Set() };
+        if (!agg[field]) agg[field] = { no3: [], p: [], som: [], no3Units: new Set(), pUnits: new Set(), somUnits: new Set(), pRejected: 0 };
+
         if (!isNaN(no3)) { agg[field].no3.push(no3); if (unitNo3) agg[field].no3Units.add(unitNo3); }
-        if (!isNaN(p))   { agg[field].p.push(p);     if (unitP)   agg[field].pUnits.add(unitP); }
         if (!isNaN(som)) { agg[field].som.push(som); if (unitSom) agg[field].somUnits.add(unitSom); }
+
+        // Фосфор: усредняем только значения в mg/kg. Другие единицы (напр. kg/ha) — другая физическая величина,
+        // их нельзя смешивать с mg/kg напрямую — исключаем из расчёта и помечаем поле.
+        if (!isNaN(p)) {
+          if (unitP === 'mg/kg') {
+            agg[field].p.push(p);
+            agg[field].pUnits.add(unitP);
+          } else if (unitP) {
+            agg[field].pUnits.add(unitP);
+            agg[field].pRejected++;
+          }
+        }
       });
     }
 
@@ -449,7 +576,7 @@ runBtn.onclick = async () => {
 
     const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
     const fmt = v => v === null ? '—' : Math.round(v);
-    const unitsLabel = set => set.size === 0 ? '' : (set.size > 1 ? Array.from(set).join(' + ') + ' ⚠️' : Array.from(set)[0]);
+    const unitsLabel = set => set.size === 0 ? '' : Array.from(set).join(' + ');
 
     const rows = keys.map(field => ({
       field,
@@ -458,7 +585,8 @@ runBtn.onclick = async () => {
       som: avg(agg[field].som),
       no3Unit: unitsLabel(agg[field].no3Units),
       pUnit: unitsLabel(agg[field].pUnits),
-      somUnit: unitsLabel(agg[field].somUnits)
+      somUnit: unitsLabel(agg[field].somUnits),
+      pRejected: agg[field].pRejected
     }));
 
     const totals = {
@@ -468,23 +596,24 @@ runBtn.onclick = async () => {
     };
     const totalPUnits = new Set();
     keys.forEach(k => agg[k].pUnits.forEach(u => totalPUnits.add(u)));
+    const fieldsWithRejectedP = rows.filter(r => r.pRejected > 0);
 
     m1ResultData = { rows, totals };
-
-    const pHasMixedUnits = rows.some(r => r.pUnit.includes('⚠️')) || totalPUnits.size > 1;
 
     outTable.innerHTML = `
       <thead><tr>
         <th>Название поля</th>
         <th>Среднее NO3-N [mg/kg]</th>
-        <th>Среднее P2O5 ${totalPUnits.size === 1 ? '[' + Array.from(totalPUnits)[0] + ']' : ''}</th>
+        <th>Среднее P2O5 [mg/kg]</th>
         <th>Среднее SOM [%]</th>
       </tr></thead>
       <tbody>
         ${rows.map(r => `<tr>
           <td>${r.field}</td>
           <td>${fmt(r.no3)}</td>
-          <td>${fmt(r.p)}${r.pUnit && totalPUnits.size > 1 ? ` <span style="font-size:11px;color:#9ca3af">(${r.pUnit})</span>` : ''}</td>
+          <td>${r.p === null && r.pRejected > 0
+              ? `<span style="color:var(--danger)" title="Данные были в ${r.pUnit}, не в mg/kg — исключены из расчёта">⚠️ нет данных в mg/kg</span>`
+              : fmt(r.p)}</td>
           <td>${fmt(r.som)}</td>
         </tr>`).join('')}
         <tr class="total">
@@ -498,8 +627,8 @@ runBtn.onclick = async () => {
     resultSec.style.display = 'block';
     statusEl.className = 'status';
     statusEl.textContent = `Готово — обработано файлов: ${m1Files.length}, полей: ${rows.length}`;
-    if (pHasMixedUnits) {
-      statusEl.textContent += '. Внимание: фосфор встречается в разных единицах измерения (mg/kg и kg/ha) — это разные величины, не складывайте их между собой напрямую.';
+    if (fieldsWithRejectedP.length) {
+      statusEl.textContent += `. Внимание: у ${fieldsWithRejectedP.length} поле(й) фосфор пришёл не в mg/kg (а в ${Array.from(totalPUnits).filter(u=>u!=='mg/kg').join(', ')}) — такие значения исключены из расчёта, чтобы не исказить результат. Перезалейте экспорт FarmLab с единицами mg/kg для этих полей.`;
       statusEl.classList.add('err');
     }
     syncFieldsFromModule1();
@@ -639,18 +768,18 @@ function renderM2Fields() {
       ${f.fromModule1 ? `
       <div class="src-tags">
         <span class="src-tag">из Модуля 1</span>
-        <span class="src-tag">NO3-N: ${f.no3 !== null ? Math.round(f.no3) : '—'} мг/кг</span>
         <span class="src-tag">P2O5: ${f.p !== null ? Math.round(f.p) : '—'} мг/кг</span>
+        <span class="src-tag">NO3-N: ${f.no3 !== null ? Math.round(f.no3) : '—'} мг/кг</span>
         <span class="src-tag">Гумус: ${f.som !== null ? Math.round(f.som*10)/10 : '—'} %</span>
       </div>` : `
       <div class="field-row-grid" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr;">
         <div class="field-group">
-          <label>NO3-N, мг/кг</label>
-          <input type="number" class="f-no3" step="0.1" min="0" value="${f.no3 ?? ''}" placeholder="напр. 12">
-        </div>
-        <div class="field-group">
           <label>P2O5, мг/кг</label>
           <input type="number" class="f-p" step="0.1" min="0" value="${f.p ?? ''}" placeholder="напр. 25">
+        </div>
+        <div class="field-group">
+          <label>NO3-N, мг/кг</label>
+          <input type="number" class="f-no3" step="0.1" min="0" value="${f.no3 ?? ''}" placeholder="напр. 12">
         </div>
         <div class="field-group">
           <label>Гумус, %</label>
@@ -658,7 +787,7 @@ function renderM2Fields() {
         </div>
       </div>
       <div class="src-tags">
-        <span class="src-tag" style="background:#f3f4f6;color:#6b7280">введено вручную</span>
+        <span class="src-tag" style="background:var(--border-light);color:var(--text-muted)">введено вручную</span>
       </div>`}
     </div>
   `).join('');
@@ -700,9 +829,15 @@ function renderM2Fields() {
 
 m2CalcBtn.onclick = () => {
   m2Status.className = 'status';
-  const missing = m2Fields.filter(f => !f.yieldVal || f.no3 === null || f.p === null);
-  if (missing.length) {
-    m2Status.textContent = `Внимание: у ${missing.length} поле(й) не хватает данных (урожайность или NO3/P2O5). Расчёт для них может быть неточным.`;
+  const missingYield = m2Fields.filter(f => !f.yieldVal);
+  const missingP = m2Fields.filter(f => f.no3 !== null && f.p === null); // came from Module1 but P rejected due to units
+  const missingAny = m2Fields.filter(f => f.no3 === null || f.p === null || !f.yieldVal);
+
+  if (missingAny.length) {
+    let msg = `Внимание: у ${missingAny.length} поле(й) не хватает данных. `;
+    if (missingP.length) msg += `Доза P не рассчитана для: ${missingP.map(f=>f.name).join(', ')} — фосфор по этим полям пришёл из FarmLab не в mg/kg. Перезалейте экспорт с фосфором в mg/kg в Модуле 1. `;
+    if (missingYield.length) msg += `Не указана урожайность для: ${missingYield.map(f=>f.name).join(', ')}.`;
+    m2Status.textContent = msg;
     m2Status.classList.add('err');
   } else {
     m2Status.textContent = '';
@@ -712,15 +847,16 @@ m2CalcBtn.onclick = () => {
     const coef = coefData[f.mode].find(c => c.culture === f.culture);
     const yieldVal = parseFloat(f.yieldVal) || 0;
     const no3 = f.no3 !== null ? f.no3 : 0;   // FarmLab mg/kg, used as-is
-    const p   = f.p   !== null ? f.p   : 0;   // FarmLab mg/kg, used as-is
     const gumus = f.som !== null ? f.som : 0; // real field humus from FarmLab
 
     let doseN = null, doseP = null;
     if (coef) {
       // Ду N = (ВыносN×Урожайность − NO3×Кв×Кп − Гумус×Кн) / Ку
       doseN = ((coef.vynosN * yieldVal) - (no3 * coef.kvN * coef.kpN) - (gumus * coef.knN)) / coef.kuN;
-      // Ду P = (ВыносP×Урожайность − P2O5×Кв×Кп) / Ку
-      doseP = ((coef.vynosP * yieldVal) - (p * coef.kvP * coef.kpP)) / coef.kuP;
+      // Ду P = (ВыносP×Урожайность − P2O5×Кв×Кп) / Ку — только если P2O5 есть в mg/kg
+      if (f.p !== null) {
+        doseP = ((coef.vynosP * yieldVal) - (f.p * coef.kvP * coef.kpP)) / coef.kuP;
+      }
     }
 
     return {
@@ -741,10 +877,10 @@ m2CalcBtn.onclick = () => {
       <th>Режим</th>
       <th>Культура</th>
       <th>Урожайность, т/га</th>
-      <th>NO3-N, мг/кг</th>
       <th>P2O5, мг/кг</th>
-      <th>Доза N, кг д.в./га</th>
+      <th>NO3-N, мг/кг</th>
       <th>Доза P, кг д.в./га</th>
+      <th>Доза N, кг д.в./га</th>
     </tr></thead>
     <tbody>
       ${results.map(r => `<tr>
@@ -752,10 +888,10 @@ m2CalcBtn.onclick = () => {
         <td>${r.mode}</td>
         <td>${r.culture}</td>
         <td>${r.yieldVal || '—'}</td>
-        <td>${r.no3 !== null ? Math.round(r.no3) : '—'}</td>
         <td>${r.p !== null ? Math.round(r.p) : '—'}</td>
-        <td><b>${r.doseN !== null ? Math.round(r.doseN) : '—'}</b></td>
+        <td>${r.no3 !== null ? Math.round(r.no3) : '—'}</td>
         <td><b>${r.doseP !== null ? Math.round(r.doseP) : '—'}</b></td>
+        <td><b>${r.doseN !== null ? Math.round(r.doseN) : '—'}</b></td>
       </tr>`).join('')}
     </tbody>`;
 
@@ -766,13 +902,13 @@ m2CalcBtn.onclick = () => {
 m2DlBtn.onclick = () => {
   const results = JSON.parse(m2ResultSec.dataset.results || '[]');
   if (!results.length) return;
-  const header = ['Поле', 'Режим', 'Культура', 'Урожайность, т/га', 'NO3-N, мг/кг', 'P2O5, мг/кг', 'Доза N, кг д.в./га', 'Доза P, кг д.в./га'];
+  const header = ['Поле', 'Режим', 'Культура', 'Урожайность, т/га', 'P2O5, мг/кг', 'NO3-N, мг/кг', 'Доза P, кг д.в./га', 'Доза N, кг д.в./га'];
   const sheetData = [header, ...results.map(r => [
     r.field, r.mode, r.culture, r.yieldVal,
-    r.no3 !== null ? Math.round(r.no3) : '',
     r.p !== null ? Math.round(r.p) : '',
-    r.doseN !== null ? Math.round(r.doseN) : '',
-    r.doseP !== null ? Math.round(r.doseP) : ''
+    r.no3 !== null ? Math.round(r.no3) : '',
+    r.doseP !== null ? Math.round(r.doseP) : '',
+    r.doseN !== null ? Math.round(r.doseN) : ''
   ])];
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
   ws['!cols'] = [{wch:22},{wch:12},{wch:16},{wch:16},{wch:14},{wch:14},{wch:16},{wch:16}];
