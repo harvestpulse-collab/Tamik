@@ -3,300 +3,229 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FarmLab — Агрокалькулятор</title>
+<title>FarmLab — Инструменты агронома</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-  background: #f4f6f9;
-  color: #1a1a1a;
-  min-height: 100vh;
-  padding: 2rem 1rem;
-}
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
 
-.container { max-width: 900px; margin: 0 auto; }
+  .container { max-width: 980px; margin: 0 auto; }
 
-header { margin-bottom: 2rem; }
-header h1 { font-size: 22px; font-weight: 600; }
-header p { font-size: 14px; color: #666; margin-top: 4px; }
+  header { margin-bottom: 1.5rem; }
+  header h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; }
+  header p { font-size: 14px; color: #666; margin-top: 4px; }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 1.5rem;
-  background: #e5e7eb;
-  padding: 4px;
-  border-radius: 10px;
-  width: fit-content;
-}
-.tab-btn {
-  padding: 8px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  border-radius: 7px;
-  cursor: pointer;
-  background: transparent;
-  color: #6b7280;
-  transition: all 0.15s;
-}
-.tab-btn.active {
-  background: #fff;
-  color: #1a1a1a;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    color: #6b7280;
+    margin-bottom: -1px;
+  }
+  .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+  .tab-btn:hover:not(.active) { color: #374151; }
 
-/* Cards */
-.card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-.card h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 1rem;
-}
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
-/* Drop zone */
-.drop-zone {
-  border: 2px dashed #d1d5db;
-  border-radius: 10px;
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  background: #fafafa;
-}
-.drop-zone:hover, .drop-zone.over { background: #f0f4ff; border-color: #6366f1; }
-.drop-zone svg { width: 36px; height: 36px; color: #9ca3af; margin-bottom: 10px; }
-.drop-zone p { font-size: 14px; color: #6b7280; }
-.drop-zone span { color: #6366f1; font-weight: 500; cursor: pointer; text-decoration: underline; }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
 
-.file-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 6px; }
-.file-chip {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; background: #f9fafb;
-  border: 1px solid #e5e7eb; border-radius: 8px; padding: 7px 12px; color: #374151;
-}
-.file-chip svg { color: #9ca3af; flex-shrink: 0; }
-.file-chip .rm { margin-left: auto; cursor: pointer; color: #9ca3af; background: none; border: none; font-size: 16px; line-height: 1; padding: 0 2px; }
-.file-chip .rm:hover { color: #ef4444; }
+  .card h2 { font-size: 15px; font-weight: 600; color: #374151; margin-bottom: 12px; }
+  .card .sub { font-size: 13px; color: #6b7280; margin-top: -8px; margin-bottom: 14px; }
 
-/* Buttons */
-button {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; font-size: 14px; font-weight: 500;
-  border-radius: 8px; cursor: pointer;
-  border: 1px solid #d1d5db; background: #fff; color: #374151;
-  transition: background 0.12s;
-}
-button:hover { background: #f3f4f6; }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-primary { background: #6366f1; color: #fff; border-color: #6366f1; }
-.btn-primary:hover { background: #4f46e5; }
-.btn-success { background: #10b981; color: #fff; border-color: #10b981; }
-.btn-success:hover { background: #059669; }
+  .drop-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    background: #fafafa;
+  }
+  .drop-zone:hover, .drop-zone.over { background: #f0f4ff; border-color: #6366f1; }
+  .drop-zone svg { width: 36px; height: 36px; color: #9ca3af; margin-bottom: 10px; }
+  .drop-zone p { font-size: 14px; color: #6b7280; }
+  .drop-zone span { color: #6366f1; font-weight: 500; cursor: pointer; text-decoration: underline; }
 
-.actions { display: flex; gap: 10px; margin-top: 1.25rem; align-items: center; flex-wrap: wrap; }
-.status { font-size: 13px; color: #6b7280; margin-top: 10px; min-height: 18px; }
-.status.err { color: #ef4444; }
-.status.ok { color: #10b981; }
+  .file-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 6px; }
+  .file-chip {
+    display: flex; align-items: center; gap: 8px; font-size: 13px;
+    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 7px 12px; color: #374151;
+  }
+  .file-chip svg { color: #9ca3af; flex-shrink: 0; }
+  .file-chip .rm { margin-left: auto; cursor: pointer; color: #9ca3af; background: none; border: none; font-size: 16px; line-height: 1; padding: 0 2px; }
+  .file-chip .rm:hover { color: #ef4444; }
 
-/* Table */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-thead th {
-  background: #f9fafb; font-weight: 600; color: #374151;
-  text-align: left; padding: 10px 14px;
-  border-bottom: 2px solid #e5e7eb; white-space: nowrap;
-}
-tbody td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; color: #1a1a1a; }
-tbody tr:hover td { background: #f9fafb; }
-tbody tr.total td { font-weight: 600; background: #f0f4ff; border-top: 2px solid #e5e7eb; border-bottom: none; }
-.dl-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .actions { display: flex; gap: 10px; margin-top: 1.25rem; align-items: center; flex-wrap: wrap; }
 
-/* Module 2 form */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label { font-size: 13px; font-weight: 500; color: #374151; }
-.form-group input, .form-group select {
-  padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 7px;
-  font-size: 14px; color: #1a1a1a; background: #fff;
-  transition: border-color 0.12s;
-}
-.form-group input:focus, .form-group select:focus {
-  outline: none; border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-}
-.form-hint { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+  button {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; font-size: 14px; font-weight: 500;
+    border-radius: 8px; cursor: pointer;
+    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    transition: background 0.12s;
+  }
+  button:hover { background: #f3f4f6; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .btn-primary:hover { background: #4f46e5; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
 
-.section-title {
-  font-size: 13px; font-weight: 600; color: #6b7280;
-  text-transform: uppercase; letter-spacing: 0.05em;
-  margin-bottom: 0.75rem; margin-top: 1.25rem;
-  padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;
-}
-.section-title:first-child { margin-top: 0; }
+  .status { font-size: 13px; color: #6b7280; margin-top: 10px; min-height: 18px; }
+  .status.err { color: #ef4444; }
+  .status.ok { color: #16a34a; }
 
-/* Field rows */
-.fields-section { margin-top: 1rem; }
-.field-row {
-  display: grid;
-  grid-template-columns: 1.5fr 100px 70px 70px 70px 60px 65px 65px;
-  gap: 8px; align-items: center;
-  padding: 8px 0; border-bottom: 1px solid #f3f4f6;
-  font-size: 13px;
-}
-.field-row.header { font-weight: 600; color: #6b7280; font-size: 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; }
-.field-row input {
-  padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 6px;
-  font-size: 13px; width: 100%; text-align: center;
-}
-.field-row input:focus { outline: none; border-color: #6366f1; }
+  .result-section { display: none; }
+  .table-wrap { overflow-x: auto; }
 
-.result-badge {
-  display: inline-block; padding: 2px 8px;
-  border-radius: 999px; font-size: 13px; font-weight: 500;
-}
-.badge-n { background: #dcfce7; color: #166534; }
-.badge-p { background: #dbeafe; color: #1e40af; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    background: #f9fafb; font-weight: 600; color: #374151; text-align: left;
+    padding: 9px 12px; border-bottom: 2px solid #e5e7eb; white-space: nowrap;
+  }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid #f3f4f6; color: #1a1a1a; }
+  tbody tr:hover td { background: #f9fafb; }
+  tbody tr.total td { font-weight: 600; background: #f0f4ff; border-top: 2px solid #e5e7eb; border-bottom: none; }
 
-.info-box {
-  background: #f0f4ff; border: 1px solid #c7d2fe;
-  border-radius: 8px; padding: 10px 14px;
-  font-size: 13px; color: #4338ca; margin-bottom: 1rem;
-}
+  .dl-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 
-footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; }
+  footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; }
 
-/* Module 2 placeholder */
-.placeholder-card {
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  padding: 4rem 1.5rem 3.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  overflow: hidden;
-}
+  /* Module 2 specific */
+  .empty-hint {
+    font-size: 13.5px; color: #6b7280; background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem;
+  }
+  .empty-hint b { color: #92400e; }
 
-.orbit-wrap {
-  position: relative;
-  width: 180px;
-  height: 180px;
-  margin-bottom: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .field-row { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; background: #fafafa; }
+  .field-row-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.3fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+  @media (max-width: 760px) {
+    .field-row-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .field-group label {
+    display: block; font-size: 11.5px; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 4px;
+  }
+  .field-group input[type="text"],
+  .field-group input[type="number"] {
+    width: 100%; padding: 7px 10px; font-size: 13.5px;
+    border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #1a1a1a;
+  }
+  .field-group select {
+    width: 100%; padding: 8px 32px 8px 10px; font-size: 13.5px;
+    border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #1a1a1a;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+    transition: border-color 0.12s;
+  }
+  .field-group select:hover { border-color: #a5b4fc; }
+  .field-group input:focus, .field-group select:focus { outline: 2px solid #c7d2fe; border-color: #6366f1; }
 
-.orbit-core {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #818cf8, #4f46e5);
-  box-shadow: 0 0 24px 6px rgba(99,102,241,0.45);
-  animation: pulse-core 2.2s ease-in-out infinite;
-}
+  .irr-toggle { display: flex; border: 1px solid #d1d5db; border-radius: 7px; overflow: hidden; }
+  .irr-toggle button {
+    flex: 1; border: none; border-radius: 0; padding: 7px 8px; font-size: 12.5px;
+    background: #fff; color: #6b7280; margin: 0;
+  }
+  .irr-toggle button.active.bogara { background: #fef3c7; color: #92400e; font-weight: 600; }
+  .irr-toggle button.active.oroshenie { background: #dbeafe; color: #1e40af; font-weight: 600; }
 
-@keyframes pulse-core {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 24px 6px rgba(99,102,241,0.45); }
-  50% { transform: scale(1.15); box-shadow: 0 0 34px 10px rgba(99,102,241,0.6); }
-}
+  .src-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .src-tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: #eef2ff; color: #4338ca; }
 
-.orbit-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px dashed #c7d2fe;
-}
+  .remove-field { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 18px; padding: 4px 8px; }
+  .remove-field:hover { color: #ef4444; }
 
-.ring1 { width: 80px;  height: 80px;  animation: spin 4s linear infinite; }
-.ring2 { width: 124px; height: 124px; animation: spin 7s linear infinite reverse; }
-.ring3 { width: 168px; height: 168px; animation: spin 11s linear infinite; }
+  details.coef-table { margin-top: 1.25rem; }
+  details.coef-table summary {
+    cursor: pointer; font-size: 14px; font-weight: 500; color: #6366f1;
+    padding: 8px 0; list-style: none; display: flex; align-items: center; gap: 6px;
+  }
+  details.coef-table summary::-webkit-details-marker { display: none; }
+  details.coef-table summary svg { transition: transform 0.15s; }
+  details.coef-table[open] summary svg { transform: rotate(90deg); }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+  .coef-sub-tabs { display: flex; gap: 6px; margin: 10px 0; }
+  .coef-sub-tab {
+    padding: 6px 14px; font-size: 12.5px; border-radius: 7px; border: 1px solid #d1d5db;
+    background: #fff; color: #6b7280; cursor: pointer;
+  }
+  .coef-sub-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
 
-.orbit-dot {
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #6366f1;
-  box-shadow: 0 0 10px 2px rgba(99,102,241,0.6);
-}
+  table.coef-editable input {
+    width: 64px; padding: 4px 6px; font-size: 12.5px;
+    border: 1px solid #e5e7eb; border-radius: 5px; text-align: right;
+  }
+  table.coef-editable td:first-child input { width: 130px; text-align: left; }
+  table.coef-editable th { font-size: 11.5px; white-space: nowrap; }
 
-.ring2 .orbit-dot { background: #a855f7; box-shadow: 0 0 10px 2px rgba(168,85,247,0.6); }
-.ring3 .orbit-dot { background: #06b6d4; box-shadow: 0 0 10px 2px rgba(6,182,212,0.6); }
-
-.placeholder-title {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  background: linear-gradient(90deg, #6366f1, #a855f7, #6366f1);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-  0%   { background-position: 0% center; }
-  100% { background-position: 200% center; }
-}
-
-.placeholder-sub {
-  margin-top: 10px;
-  font-size: 13px;
-  color: #9ca3af;
-}
+  .formula-box {
+    background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 12px 14px; font-size: 12.5px; color: #4b5563; margin-top: 10px;
+    font-family: 'SF Mono', Consolas, monospace; line-height: 1.7;
+  }
 </style>
 </head>
 <body>
+
 <div class="container">
   <header>
-    <h1>FarmLab — Агрокалькулятор</h1>
-    <p>Агрегация данных Стенона и расчёт доз удобрений</p>
+    <h1>FarmLab — Инструменты агронома</h1>
+    <p>Модуль 1: сводная по полям · Модуль 2: расчёт доз внесения удобрений</p>
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('m1')">📊 Модуль 1 — Сводная таблица</button>
-    <button class="tab-btn" onclick="switchTab('m2')">🧮 Модуль 2 — Расчёт доз</button>
+    <button class="tab-btn active" data-tab="m1">Модуль 1 — Сводная по полям</button>
+    <button class="tab-btn" data-tab="m2">Модуль 2 — Расчёт доз</button>
   </div>
 
-  <!-- MODULE 1 -->
-  <div id="m1" class="tab-panel active">
+  <!-- ===================== MODULE 1 ===================== -->
+  <div class="tab-panel active" id="tab-m1">
+
     <div class="card">
       <div class="drop-zone" id="dz">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+        </svg>
         <p><span id="browse-lbl">Выберите файлы</span> или перетащите сюда</p>
         <p style="margin-top:4px;font-size:12px;">Поддерживается: .xlsx (FarmLab экспорт)</p>
         <input type="file" id="file-input" multiple accept=".xlsx" style="display:none">
       </div>
+
       <div class="file-list" id="file-list"></div>
+
       <div class="actions">
         <button class="btn-primary" id="run-btn" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg>
@@ -307,10 +236,10 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
           Очистить
         </button>
       </div>
-      <div class="status" id="status1"></div>
+      <div class="status" id="status"></div>
     </div>
 
-    <div class="card" id="result-section" style="display:none">
+    <div class="card result-section" id="result-section">
       <h2>Сводная таблица по полям</h2>
       <div class="table-wrap"><table id="out-table"></table></div>
       <div class="dl-row">
@@ -320,110 +249,182 @@ footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 2rem; 
         </button>
       </div>
     </div>
+
   </div>
 
-  <!-- MODULE 2 — заглушка -->
-  <div id="m2" class="tab-panel">
-    <div class="placeholder-card">
-      <div class="orbit-wrap">
-        <div class="orbit-core"></div>
-        <div class="orbit-ring ring1"><span class="orbit-dot"></span></div>
-        <div class="orbit-ring ring2"><span class="orbit-dot"></span></div>
-        <div class="orbit-ring ring3"><span class="orbit-dot"></span></div>
+  <!-- ===================== MODULE 2 ===================== -->
+  <div class="tab-panel" id="tab-m2">
+
+    <div class="card">
+      <h2>Поля для расчёта</h2>
+      <p class="sub">Поля автоматически подтягиваются из Модуля 1 (NO3-N, P2O5, Гумус). Можно переименовать поле, выбрать режим Богара/Орошение, культуру и урожайность для каждого отдельно.</p>
+
+      <div id="m2-empty-hint" class="empty-hint" style="display:none">
+        Сначала загрузите и обработайте FarmLab-файлы во <b>вкладке "Модуль 1"</b> — поля появятся здесь автоматически. Можно также добавить поле вручную.
       </div>
-      <h2 class="placeholder-title">Я ЖДУ ОТ ТЕБЯ ДАННЫЕ</h2>
-      <p class="placeholder-sub">Этот модуль находится в разработке</p>
+
+      <div id="m2-fields-list"></div>
+
+      <div class="actions">
+        <button id="m2-add-field-btn" class="btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Добавить поле вручную
+        </button>
+        <button id="m2-calc-btn" class="btn-primary" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg>
+          Рассчитать дозы
+        </button>
+      </div>
+      <div class="status" id="m2-status"></div>
     </div>
+
+    <div class="card result-section" id="m2-result-section">
+      <h2>Ведомость расчёта доз внесения удобрений</h2>
+      <div class="table-wrap"><table id="m2-out-table"></table></div>
+      <div class="dl-row">
+        <button id="m2-dl-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Скачать .xlsx
+        </button>
+      </div>
+      <div class="formula-box">
+        Ду N = (Вынос N × Урожайность − NO3-N × Кв × Кп − Гумус × Кн) / Ку<br>
+        Ду P = (Вынос P × Урожайность − P2O5 × Кв × Кп) / Ку<br>
+        <span style="color:#9ca3af">NO3-N, P2O5 и Гумус берутся напрямую из FarmLab (Модуль 1), без пересчёта единиц.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <details class="coef-table" id="coef-details">
+        <summary>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
+          Справочник коэффициентов по культурам (редактируемый)
+        </summary>
+        <div class="coef-sub-tabs">
+          <button class="coef-sub-tab active" data-sheet="bogara">Богара</button>
+          <button class="coef-sub-tab" data-sheet="oroshenie">Орошение</button>
+        </div>
+        <div class="table-wrap"><table class="coef-editable" id="coef-table"></table></div>
+        <div class="dl-row">
+          <button id="coef-reset-btn" class="btn-sm">Сбросить к исходным значениям</button>
+        </div>
+      </details>
+    </div>
+
   </div>
 
   <footer>Tamik-tech</footer>
 </div>
 
 <script>
-// ===== TAB SWITCHING =====
-function switchTab(id) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
-}
-
-// ===== MODULE 1 =====
+/* ============================================================
+   SHARED STATE
+============================================================ */
 const COL_FIELD = 'Название поля';
+const COL_NO3_PREFIX = 'Азот нитратный (NO3-N)';
+const COL_P2O5_PREFIX = 'Фосфор (P2O5)';
+const COL_SOM_PREFIX = 'Органическое вещество почвы (SOM)';
 
-// Гибкий поиск колонки по подстроке — разные экспорты FarmLab используют разные единицы
-function findCol(row, substrings) {
-  const keys = Object.keys(row);
-  for (const sub of substrings) {
-    const found = keys.find(k => k.toLowerCase().includes(sub.toLowerCase()));
-    if (found) return found;
-  }
-  return null;
+function findColumn(rowKeys, prefix) {
+  return rowKeys.find(k => k.startsWith(prefix));
 }
 
-let files = [];
-let resultData = null;
+function extractUnit(colName) {
+  const m = colName.match(/\[([^\]]+)\]/);
+  return m ? m[1] : '';
+}
 
-const dz        = document.getElementById('dz');
-const fi        = document.getElementById('file-input');
-const flEl      = document.getElementById('file-list');
-const runBtn    = document.getElementById('run-btn');
-const clearBtn  = document.getElementById('clear-btn');
-const status1   = document.getElementById('status1');
+let m1Files = [];
+let m1ResultData = null; // { rows:[{field,no3,p,som}], totals }
+
+/* ============================================================
+   TABS
+============================================================ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'm2') syncFieldsFromModule1();
+  };
+});
+
+/* ============================================================
+   MODULE 1 (unchanged logic)
+============================================================ */
+const dz       = document.getElementById('dz');
+const fi       = document.getElementById('file-input');
+const flEl     = document.getElementById('file-list');
+const runBtn   = document.getElementById('run-btn');
+const clearBtn = document.getElementById('clear-btn');
+const statusEl = document.getElementById('status');
 const resultSec = document.getElementById('result-section');
-const outTable  = document.getElementById('out-table');
-const dlBtn     = document.getElementById('dl-btn');
+const outTable = document.getElementById('out-table');
+const dlBtn    = document.getElementById('dl-btn');
 
 document.getElementById('browse-lbl').onclick = () => fi.click();
 fi.onchange = e => addFiles([...e.target.files]);
+
 dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
 dz.ondragleave = () => dz.classList.remove('over');
 dz.ondrop = e => { e.preventDefault(); dz.classList.remove('over'); addFiles([...e.dataTransfer.files]); };
 
 function addFiles(newFiles) {
-  newFiles.forEach(f => { if (f.name.endsWith('.xlsx') && !files.find(x => x.name === f.name)) files.push(f); });
+  newFiles.forEach(f => {
+    if (f.name.endsWith('.xlsx') && !m1Files.find(x => x.name === f.name)) m1Files.push(f);
+  });
   renderFileList();
 }
 
 function renderFileList() {
   flEl.innerHTML = '';
-  files.forEach((f, i) => {
+  m1Files.forEach((f, i) => {
     const chip = document.createElement('div');
     chip.className = 'file-chip';
-    chip.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>${f.name}</span><button class="rm" data-i="${i}">✕</button>`;
+    chip.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>${f.name}</span>
+      <button class="rm" data-i="${i}" title="Удалить">✕</button>`;
     flEl.appendChild(chip);
   });
-  flEl.querySelectorAll('.rm').forEach(el => el.onclick = () => { files.splice(+el.dataset.i, 1); renderFileList(); });
-  runBtn.disabled = files.length === 0;
-  clearBtn.style.display = files.length ? 'inline-flex' : 'none';
+  flEl.querySelectorAll('.rm').forEach(el => el.onclick = () => { m1Files.splice(+el.dataset.i, 1); renderFileList(); });
+  runBtn.disabled = m1Files.length === 0;
+  clearBtn.style.display = m1Files.length ? 'inline-flex' : 'none';
 }
 
 clearBtn.onclick = () => {
-  files = []; renderFileList();
+  m1Files = [];
+  renderFileList();
   resultSec.style.display = 'none';
-  status1.textContent = ''; fi.value = '';
+  statusEl.textContent = '';
+  fi.value = '';
 };
 
 runBtn.onclick = async () => {
   runBtn.disabled = true;
-  status1.className = 'status';
-  status1.textContent = 'Читаем файлы…';
+  statusEl.className = 'status';
+  statusEl.textContent = 'Читаем файлы…';
   resultSec.style.display = 'none';
 
   try {
     const agg = {};
-    let pUnitWarning = false;
-    for (const file of files) {
-      const buf  = await file.arrayBuffer();
-      const wb   = XLSX.read(buf, { type: 'array' });
-      const ws   = wb.Sheets[wb.SheetNames[0]];
+
+    for (const file of m1Files) {
+      const buf = await file.arrayBuffer();
+      const wb  = XLSX.read(buf, { type: 'array' });
+      const ws  = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { defval: null });
       if (!rows.length) continue;
 
-      const colNo3 = findCol(rows[0], ['азот нитратный', 'no3-n', 'no3']);
-      const colP   = findCol(rows[0], ['фосфор', 'p2o5']);
-      const colSom = findCol(rows[0], ['органическое вещество', 'som']);
-      if (colP && colP.toLowerCase().includes('kg/ha')) pUnitWarning = true;
+      const rowKeys = Object.keys(rows[0]);
+      const colNo3 = findColumn(rowKeys, COL_NO3_PREFIX);
+      const colP   = findColumn(rowKeys, COL_P2O5_PREFIX);
+      const colSom = findColumn(rowKeys, COL_SOM_PREFIX);
+
+      const unitNo3 = colNo3 ? extractUnit(colNo3) : null;
+      const unitP   = colP   ? extractUnit(colP)   : null;
+      const unitSom = colSom ? extractUnit(colSom) : null;
 
       rows.forEach(row => {
         const field = row[COL_FIELD];
@@ -431,49 +432,411 @@ runBtn.onclick = async () => {
         const no3 = colNo3 ? parseFloat(row[colNo3]) : NaN;
         const p   = colP   ? parseFloat(row[colP])   : NaN;
         const som = colSom ? parseFloat(row[colSom]) : NaN;
-        if (!agg[field]) agg[field] = { no3: [], p: [], som: [] };
-        if (!isNaN(no3)) agg[field].no3.push(no3);
-        if (!isNaN(p))   agg[field].p.push(p);
-        if (!isNaN(som)) agg[field].som.push(som);
+        if (!agg[field]) agg[field] = { no3: [], p: [], som: [], no3Units: new Set(), pUnits: new Set(), somUnits: new Set() };
+        if (!isNaN(no3)) { agg[field].no3.push(no3); if (unitNo3) agg[field].no3Units.add(unitNo3); }
+        if (!isNaN(p))   { agg[field].p.push(p);     if (unitP)   agg[field].pUnits.add(unitP); }
+        if (!isNaN(som)) { agg[field].som.push(som); if (unitSom) agg[field].somUnits.add(unitSom); }
       });
     }
 
     const keys = Object.keys(agg);
-    if (!keys.length) { status1.textContent = 'Данных не найдено.'; status1.classList.add('err'); runBtn.disabled = false; return; }
+    if (keys.length === 0) {
+      statusEl.textContent = 'Данных не найдено. Проверьте заголовки колонок в файлах.';
+      statusEl.classList.add('err');
+      runBtn.disabled = false;
+      return;
+    }
 
     const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
     const fmt = v => v === null ? '—' : Math.round(v);
+    const unitsLabel = set => set.size === 0 ? '' : (set.size > 1 ? Array.from(set).join(' + ') + ' ⚠️' : Array.from(set)[0]);
 
-    const rows = keys.map(field => ({ field, no3: avg(agg[field].no3), p: avg(agg[field].p), som: avg(agg[field].som) }));
-    const totals = { no3: avg(rows.flatMap(r => agg[r.field].no3)), p: avg(rows.flatMap(r => agg[r.field].p)), som: avg(rows.flatMap(r => agg[r.field].som)) };
-    resultData = { rows, totals };
+    const rows = keys.map(field => ({
+      field,
+      no3: avg(agg[field].no3),
+      p:   avg(agg[field].p),
+      som: avg(agg[field].som),
+      no3Unit: unitsLabel(agg[field].no3Units),
+      pUnit: unitsLabel(agg[field].pUnits),
+      somUnit: unitsLabel(agg[field].somUnits)
+    }));
 
-    outTable.innerHTML = `<thead><tr><th>Название поля</th><th>Среднее NO3-N [mg/kg]</th><th>Среднее P2O5 [mg/kg]</th><th>Среднее SOM [%]</th></tr></thead><tbody>
-      ${rows.map(r => `<tr><td>${r.field}</td><td>${fmt(r.no3)}</td><td>${fmt(r.p)}</td><td>${fmt(r.som)}</td></tr>`).join('')}
-      <tr class="total"><td>Общий итог</td><td>${fmt(totals.no3)}</td><td>${fmt(totals.p)}</td><td>${fmt(totals.som)}</td></tr>
-    </tbody>`;
+    const totals = {
+      no3: avg(rows.flatMap(r => agg[r.field].no3)),
+      p:   avg(rows.flatMap(r => agg[r.field].p)),
+      som: avg(rows.flatMap(r => agg[r.field].som))
+    };
+    const totalPUnits = new Set();
+    keys.forEach(k => agg[k].pUnits.forEach(u => totalPUnits.add(u)));
+
+    m1ResultData = { rows, totals };
+
+    const pHasMixedUnits = rows.some(r => r.pUnit.includes('⚠️')) || totalPUnits.size > 1;
+
+    outTable.innerHTML = `
+      <thead><tr>
+        <th>Название поля</th>
+        <th>Среднее NO3-N [mg/kg]</th>
+        <th>Среднее P2O5 ${totalPUnits.size === 1 ? '[' + Array.from(totalPUnits)[0] + ']' : ''}</th>
+        <th>Среднее SOM [%]</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `<tr>
+          <td>${r.field}</td>
+          <td>${fmt(r.no3)}</td>
+          <td>${fmt(r.p)}${r.pUnit && totalPUnits.size > 1 ? ` <span style="font-size:11px;color:#9ca3af">(${r.pUnit})</span>` : ''}</td>
+          <td>${fmt(r.som)}</td>
+        </tr>`).join('')}
+        <tr class="total">
+          <td>Общий итог</td>
+          <td>${fmt(totals.no3)}</td>
+          <td>${fmt(totals.p)}</td>
+          <td>${fmt(totals.som)}</td>
+        </tr>
+      </tbody>`;
 
     resultSec.style.display = 'block';
-    status1.textContent = `Готово — файлов: ${files.length}, полей: ${rows.length}` +
-      (pUnitWarning ? '. ⚠️ Внимание: в одном из файлов фосфор указан в [kg/ha], а не [mg/kg] — значения могут быть несопоставимы.' : '');
-    status1.className = 'status ok';
-  } catch (e) { status1.textContent = 'Ошибка: ' + e.message; status1.classList.add('err'); }
+    statusEl.className = 'status';
+    statusEl.textContent = `Готово — обработано файлов: ${m1Files.length}, полей: ${rows.length}`;
+    if (pHasMixedUnits) {
+      statusEl.textContent += '. Внимание: фосфор встречается в разных единицах измерения (mg/kg и kg/ha) — это разные величины, не складывайте их между собой напрямую.';
+      statusEl.classList.add('err');
+    }
+    syncFieldsFromModule1();
+  } catch (e) {
+    statusEl.textContent = 'Ошибка: ' + e.message;
+    statusEl.classList.add('err');
+  }
   runBtn.disabled = false;
 };
 
 dlBtn.onclick = () => {
-  if (!resultData) return;
-  const hdr = ['Название поля', 'Среднее NO3-N [mg/kg]', 'Среднее P2O5 [mg/kg]', 'Среднее SOM [%]'];
-  const sd = [hdr,
-    ...resultData.rows.map(r => [r.field, r.no3 !== null ? Math.round(r.no3) : '', r.p !== null ? Math.round(r.p) : '', r.som !== null ? Math.round(r.som) : '']),
-    ['Общий итог', Math.round(resultData.totals.no3), Math.round(resultData.totals.p), Math.round(resultData.totals.som)]
+  if (!m1ResultData) return;
+  const header = ['Название поля', 'Среднее NO3-N [mg/kg]', 'Среднее P2O5 [mg/kg]', 'Среднее SOM [%]'];
+  const sheetData = [
+    header,
+    ...m1ResultData.rows.map(r => [r.field,
+      r.no3 !== null ? Math.round(r.no3) : '',
+      r.p   !== null ? Math.round(r.p)   : '',
+      r.som !== null ? Math.round(r.som) : ''
+    ]),
+    ['Общий итог',
+      Math.round(m1ResultData.totals.no3),
+      Math.round(m1ResultData.totals.p),
+      Math.round(m1ResultData.totals.som)
+    ]
   ];
-  const ws = XLSX.utils.aoa_to_sheet(sd);
-  ws['!cols'] = [{wch:25},{wch:22},{wch:20},{wch:18}];
+  const ws = XLSX.utils.aoa_to_sheet(sheetData);
+  ws['!cols'] = [{ wch: 25 }, { wch: 22 }, { wch: 20 }, { wch: 18 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Сводная');
   XLSX.writeFile(wb, 'farmlab_сводная.xlsx');
 };
+
+/* ============================================================
+   MODULE 2
+============================================================ */
+
+// Reference coefficient data (Богара / Орошение)
+const COEF_DEFAULT = {"bogara": [{"culture": "пшеница", "vynosN": 35, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 12.5, "kvP": 3.6, "kpP": 0.2, "kuP": 0.4}, {"culture": "овес", "vynosN": 36.4, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 12, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "ячмень", "vynosN": 35.6, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 12.1, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "оз. пшеница", "vynosN": 32, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 12, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "оз. рожь", "vynosN": 41, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 11, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "горох", "vynosN": 37.6, "kvN": 3.6, "knN": 13, "kpN": 0.75, "kuN": 0.8, "gumus": null, "vynosP": 10.4, "kvP": 3.6, "kpP": 0.15, "kuP": 0.4}, {"culture": "нут", "vynosN": 37.6, "kvN": 3.6, "knN": 13, "kpN": 0.75, "kuN": 0.8, "gumus": null, "vynosP": 10.4, "kvP": 3.6, "kpP": 0.15, "kuP": 0.4}, {"culture": "чечевица", "vynosN": 59, "kvN": 3.6, "knN": 13, "kpN": 0.75, "kuN": 0.8, "gumus": null, "vynosP": 20, "kvP": 3.6, "kpP": 0.15, "kuP": 0.4}, {"culture": "рапс", "vynosN": 55, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 22, "kvP": 3.6, "kpP": 0.15, "kuP": 0.3}, {"culture": "гречиха", "vynosN": 36.1, "kvN": 3.6, "knN": 13, "kpN": 0.2, "kuN": 0.4, "gumus": null, "vynosP": 16.2, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "подсолнечник", "vynosN": 45, "kvN": 4.8, "knN": 13, "kpN": 0.8, "kuN": 0.7, "gumus": null, "vynosP": 18, "kvP": 3.6, "kpP": 0.2, "kuP": 0.4}, {"culture": "сафлор", "vynosN": 50, "kvN": 2.4, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 15, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "лук", "vynosN": 1.6, "kvN": 3.6, "knN": 13, "kpN": 0.35, "kuN": 0.5, "gumus": null, "vynosP": 1.2, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "сах. свекла", "vynosN": 4, "kvN": 4.8, "knN": 13, "kpN": 0.25, "kuN": 0.8, "gumus": null, "vynosP": 1.8, "kvP": 3.6, "kpP": 0.2, "kuP": 0.4}, {"culture": "хлопок", "vynosN": 50, "kvN": 3.6, "knN": 13, "kpN": 0.8, "kuN": 0.8, "gumus": null, "vynosP": 17, "kvP": 3.6, "kpP": 0.15, "kuP": 0.35}, {"culture": "кукуруза (силос)", "vynosN": 30, "kvN": 4.8, "knN": 13, "kpN": 0.8, "kuN": 0.8, "gumus": null, "vynosP": 10, "kvP": 3.6, "kpP": 0.15, "kuP": 0.35}, {"culture": "суданка", "vynosN": 30, "kvN": 3.6, "knN": 13, "kpN": 0.8, "kuN": 0.65, "gumus": null, "vynosP": 7, "kvP": 3.6, "kpP": 0.15, "kuP": 0.35}, {"culture": "сорго", "vynosN": 30, "kvN": 3.6, "knN": 13, "kpN": 0.8, "kuN": 0.7, "gumus": null, "vynosP": 12, "kvP": 3.6, "kpP": 0.15, "kuP": 0.35}, {"culture": "соя", "vynosN": 50, "kvN": 3.6, "knN": 13, "kpN": 0.75, "kuN": 0.8, "gumus": null, "vynosP": 16, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "клевер", "vynosN": 20, "kvN": 3.6, "knN": 13, "kpN": 0.75, "kuN": 0.9, "gumus": null, "vynosP": 6, "kvP": 3.6, "kpP": 0.1, "kuP": 0.4}, {"culture": "люцерна (сено)", "vynosN": 22, "kvN": 3.6, "knN": 13, "kpN": 0.75, "kuN": 0.75, "gumus": null, "vynosP": 6.5, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}, {"culture": "лён", "vynosN": 60, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.6, "gumus": null, "vynosP": 20, "kvP": 3.6, "kpP": 0.1, "kuP": 0.3}], "oroshenie": [{"culture": "пшеница", "vynosN": 35, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 12.5, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "овес", "vynosN": 36.4, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 12, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "ячмень", "vynosN": 35.6, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 12.1, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "оз. пшеница", "vynosN": 32, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 12, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "оз. рожь", "vynosN": 41, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 11, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "лён", "vynosN": 60, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 20, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "горох", "vynosN": 37.6, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 10.4, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "чечевица", "vynosN": 59, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 20, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "рапс", "vynosN": 55, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 23, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "горчица", "vynosN": 55, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 22, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "гречиха", "vynosN": 36.1, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 16.2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "подсолнечник", "vynosN": 45, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 18, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "сафлор", "vynosN": 50, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 15, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "лук", "vynosN": 1.6, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 1.2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "сах. свекла", "vynosN": 4, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 1.8, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "хлопок", "vynosN": 50, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 15, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "кукуруза (силос)", "vynosN": 5, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 1.2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "кукуруза (зерно)", "vynosN": 30, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 10, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "суданка", "vynosN": 30, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 7, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "соя", "vynosN": 50, "kvN": 4.8, "knN": 13, "kpN": 0.9, "kuN": 0.8, "gumus": null, "vynosP": 16, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "клевер", "vynosN": 20, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 6, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "люцерна", "vynosN": 22, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 6.5, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "картофель", "vynosN": 5, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "арбузы", "vynosN": 3.5, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 1.6, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "капуста", "vynosN": 3.1, "kvN": 4.8, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 0.9, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "томат", "vynosN": 2.8, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 0.6, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "морковь", "vynosN": 2.4, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 1.5, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "кабачки", "vynosN": 2.5, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "перец", "vynosN": 4, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "баклажаны", "vynosN": 3, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 1.2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}, {"culture": "свекла столовая", "vynosN": 3.2, "kvN": 3.6, "knN": 13, "kpN": 0.7, "kuN": 0.8, "gumus": null, "vynosP": 2, "kvP": 3.6, "kpP": 0.3, "kuP": 0.5}]}
+;
+
+let coefData = JSON.parse(JSON.stringify(COEF_DEFAULT)); // editable copy
+let m2Fields = []; // { id, name, no3, p, som, mode:'bogara'|'oroshenie', culture, yield, fromModule1:bool }
+let m2Counter = 0;
+
+const m2FieldsList = document.getElementById('m2-fields-list');
+const m2EmptyHint  = document.getElementById('m2-empty-hint');
+const m2CalcBtn    = document.getElementById('m2-calc-btn');
+const m2Status     = document.getElementById('m2-status');
+const m2ResultSec  = document.getElementById('m2-result-section');
+const m2OutTable   = document.getElementById('m2-out-table');
+const m2DlBtn      = document.getElementById('m2-dl-btn');
+
+function syncFieldsFromModule1() {
+  if (!m1ResultData) {
+    m2EmptyHint.style.display = m2Fields.length ? 'none' : 'block';
+    return;
+  }
+  m1ResultData.rows.forEach(r => {
+    const exists = m2Fields.find(f => f.sourceName === r.field && f.fromModule1);
+    if (!exists) {
+      m2Fields.push({
+        id: 'f' + (m2Counter++),
+        name: r.field,
+        sourceName: r.field,
+        no3: r.no3,
+        p: r.p,
+        som: r.som,
+        mode: 'bogara',
+        culture: coefData.bogara[0].culture,
+        yieldVal: '',
+        fromModule1: true
+      });
+    } else {
+      // refresh values in case module1 was re-run
+      exists.no3 = r.no3;
+      exists.p = r.p;
+      exists.som = r.som;
+    }
+  });
+  m2EmptyHint.style.display = m2Fields.length ? 'none' : 'block';
+  renderM2Fields();
+}
+
+function addManualField() {
+  m2Fields.push({
+    id: 'f' + (m2Counter++),
+    name: 'Новое поле',
+    sourceName: null,
+    no3: null,
+    p: null,
+    som: null,
+    mode: 'bogara',
+    culture: coefData.bogara[0].culture,
+    yieldVal: '',
+    fromModule1: false
+  });
+  m2EmptyHint.style.display = 'none';
+  renderM2Fields();
+}
+document.getElementById('m2-add-field-btn').onclick = addManualField;
+
+function cultureOptions(mode, selected) {
+  const sorted = [...coefData[mode]].sort((a, b) => a.culture.localeCompare(b.culture, 'ru'));
+  return sorted.map(c =>
+    `<option value="${c.culture}" ${c.culture === selected ? 'selected' : ''}>${c.culture}</option>`
+  ).join('');
+}
+
+function renderM2Fields() {
+  m2FieldsList.innerHTML = m2Fields.map(f => `
+    <div class="field-row" data-id="${f.id}">
+      <div class="field-row-grid">
+        <div class="field-group">
+          <label>Название поля</label>
+          <input type="text" class="f-name" value="${f.name.replace(/"/g,'&quot;')}">
+        </div>
+        <div class="field-group">
+          <label>Режим</label>
+          <div class="irr-toggle">
+            <button type="button" class="irr-bogara ${f.mode==='bogara'?'active bogara':''}">Богара</button>
+            <button type="button" class="irr-oroshenie ${f.mode==='oroshenie'?'active oroshenie':''}">Орошение</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Культура</label>
+          <select class="f-culture">${cultureOptions(f.mode, f.culture)}</select>
+        </div>
+        <div class="field-group">
+          <label>Урожайность, т/га</label>
+          <input type="number" class="f-yield" step="0.1" min="0" value="${f.yieldVal}" placeholder="напр. 4.5">
+        </div>
+        <div>
+          <button class="remove-field" title="Удалить поле">✕</button>
+        </div>
+      </div>
+      ${f.fromModule1 ? `
+      <div class="src-tags">
+        <span class="src-tag">из Модуля 1</span>
+        <span class="src-tag">NO3-N: ${f.no3 !== null ? Math.round(f.no3) : '—'} мг/кг</span>
+        <span class="src-tag">P2O5: ${f.p !== null ? Math.round(f.p) : '—'} мг/кг</span>
+        <span class="src-tag">Гумус: ${f.som !== null ? Math.round(f.som*10)/10 : '—'} %</span>
+      </div>` : `
+      <div class="field-row-grid" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr;">
+        <div class="field-group">
+          <label>NO3-N, мг/кг</label>
+          <input type="number" class="f-no3" step="0.1" min="0" value="${f.no3 ?? ''}" placeholder="напр. 12">
+        </div>
+        <div class="field-group">
+          <label>P2O5, мг/кг</label>
+          <input type="number" class="f-p" step="0.1" min="0" value="${f.p ?? ''}" placeholder="напр. 25">
+        </div>
+        <div class="field-group">
+          <label>Гумус, %</label>
+          <input type="number" class="f-som" step="0.1" min="0" value="${f.som ?? ''}" placeholder="напр. 4">
+        </div>
+      </div>
+      <div class="src-tags">
+        <span class="src-tag" style="background:#f3f4f6;color:#6b7280">введено вручную</span>
+      </div>`}
+    </div>
+  `).join('');
+
+  m2FieldsList.querySelectorAll('.field-row').forEach(row => {
+    const id = row.dataset.id;
+    const f = m2Fields.find(x => x.id === id);
+
+    row.querySelector('.f-name').oninput = e => { f.name = e.target.value; };
+    row.querySelector('.f-yield').oninput = e => { f.yieldVal = e.target.value; };
+    row.querySelector('.f-culture').onchange = e => { f.culture = e.target.value; };
+
+    const no3Input = row.querySelector('.f-no3');
+    const pInput = row.querySelector('.f-p');
+    const somInput = row.querySelector('.f-som');
+    if (no3Input) no3Input.oninput = e => { f.no3 = e.target.value === '' ? null : parseFloat(e.target.value); };
+    if (pInput) pInput.oninput = e => { f.p = e.target.value === '' ? null : parseFloat(e.target.value); };
+    if (somInput) somInput.oninput = e => { f.som = e.target.value === '' ? null : parseFloat(e.target.value); };
+
+    row.querySelector('.irr-bogara').onclick = () => {
+      f.mode = 'bogara';
+      if (!coefData.bogara.find(c => c.culture === f.culture)) f.culture = coefData.bogara[0].culture;
+      renderM2Fields();
+    };
+    row.querySelector('.irr-oroshenie').onclick = () => {
+      f.mode = 'oroshenie';
+      if (!coefData.oroshenie.find(c => c.culture === f.culture)) f.culture = coefData.oroshenie[0].culture;
+      renderM2Fields();
+    };
+    row.querySelector('.remove-field').onclick = () => {
+      m2Fields = m2Fields.filter(x => x.id !== id);
+      renderM2Fields();
+      if (!m2Fields.length) m2EmptyHint.style.display = 'block';
+    };
+  });
+
+  m2CalcBtn.disabled = m2Fields.length === 0;
+}
+
+m2CalcBtn.onclick = () => {
+  m2Status.className = 'status';
+  const missing = m2Fields.filter(f => !f.yieldVal || f.no3 === null || f.p === null);
+  if (missing.length) {
+    m2Status.textContent = `Внимание: у ${missing.length} поле(й) не хватает данных (урожайность или NO3/P2O5). Расчёт для них может быть неточным.`;
+    m2Status.classList.add('err');
+  } else {
+    m2Status.textContent = '';
+  }
+
+  const results = m2Fields.map(f => {
+    const coef = coefData[f.mode].find(c => c.culture === f.culture);
+    const yieldVal = parseFloat(f.yieldVal) || 0;
+    const no3 = f.no3 !== null ? f.no3 : 0;   // FarmLab mg/kg, used as-is
+    const p   = f.p   !== null ? f.p   : 0;   // FarmLab mg/kg, used as-is
+    const gumus = f.som !== null ? f.som : 0; // real field humus from FarmLab
+
+    let doseN = null, doseP = null;
+    if (coef) {
+      // Ду N = (ВыносN×Урожайность − NO3×Кв×Кп − Гумус×Кн) / Ку
+      doseN = ((coef.vynosN * yieldVal) - (no3 * coef.kvN * coef.kpN) - (gumus * coef.knN)) / coef.kuN;
+      // Ду P = (ВыносP×Урожайность − P2O5×Кв×Кп) / Ку
+      doseP = ((coef.vynosP * yieldVal) - (p * coef.kvP * coef.kpP)) / coef.kuP;
+    }
+
+    return {
+      field: f.name,
+      mode: f.mode === 'bogara' ? 'Богара' : 'Орошение',
+      culture: f.culture,
+      yieldVal,
+      no3: f.no3,
+      p: f.p,
+      doseN,
+      doseP
+    };
+  });
+
+  m2OutTable.innerHTML = `
+    <thead><tr>
+      <th>Поле</th>
+      <th>Режим</th>
+      <th>Культура</th>
+      <th>Урожайность, т/га</th>
+      <th>NO3-N, мг/кг</th>
+      <th>P2O5, мг/кг</th>
+      <th>Доза N, кг д.в./га</th>
+      <th>Доза P, кг д.в./га</th>
+    </tr></thead>
+    <tbody>
+      ${results.map(r => `<tr>
+        <td>${r.field}</td>
+        <td>${r.mode}</td>
+        <td>${r.culture}</td>
+        <td>${r.yieldVal || '—'}</td>
+        <td>${r.no3 !== null ? Math.round(r.no3) : '—'}</td>
+        <td>${r.p !== null ? Math.round(r.p) : '—'}</td>
+        <td><b>${r.doseN !== null ? Math.round(r.doseN) : '—'}</b></td>
+        <td><b>${r.doseP !== null ? Math.round(r.doseP) : '—'}</b></td>
+      </tr>`).join('')}
+    </tbody>`;
+
+  m2ResultSec.style.display = 'block';
+  m2ResultSec.dataset.results = JSON.stringify(results);
+};
+
+m2DlBtn.onclick = () => {
+  const results = JSON.parse(m2ResultSec.dataset.results || '[]');
+  if (!results.length) return;
+  const header = ['Поле', 'Режим', 'Культура', 'Урожайность, т/га', 'NO3-N, мг/кг', 'P2O5, мг/кг', 'Доза N, кг д.в./га', 'Доза P, кг д.в./га'];
+  const sheetData = [header, ...results.map(r => [
+    r.field, r.mode, r.culture, r.yieldVal,
+    r.no3 !== null ? Math.round(r.no3) : '',
+    r.p !== null ? Math.round(r.p) : '',
+    r.doseN !== null ? Math.round(r.doseN) : '',
+    r.doseP !== null ? Math.round(r.doseP) : ''
+  ])];
+  const ws = XLSX.utils.aoa_to_sheet(sheetData);
+  ws['!cols'] = [{wch:22},{wch:12},{wch:16},{wch:16},{wch:14},{wch:14},{wch:16},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ведомость доз');
+  XLSX.writeFile(wb, 'ведомость_доз.xlsx');
+};
+
+/* ----- Editable coefficient reference table ----- */
+const coefTable = document.getElementById('coef-table');
+let activeCoefSheet = 'bogara';
+
+const COEF_COLS = [
+  { key: 'culture', label: 'Культура', type: 'text' },
+  { key: 'vynosN', label: 'Вынос N', type: 'number' },
+  { key: 'kvN', label: 'Кв N', type: 'number' },
+  { key: 'knN', label: 'Кн N', type: 'number' },
+  { key: 'kpN', label: 'Кп N', type: 'number' },
+  { key: 'kuN', label: 'Ку N', type: 'number' },
+  { key: 'vynosP', label: 'Вынос P', type: 'number' },
+  { key: 'kvP', label: 'Кв P', type: 'number' },
+  { key: 'kpP', label: 'Кп P', type: 'number' },
+  { key: 'kuP', label: 'Ку P', type: 'number' },
+];
+
+function renderCoefTable() {
+  const rows = coefData[activeCoefSheet];
+  coefTable.innerHTML = `
+    <thead><tr>${COEF_COLS.map(c => `<th>${c.label}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${rows.map((r, idx) => `<tr data-idx="${idx}">
+        ${COEF_COLS.map(c => `<td><input type="${c.type}" step="any" data-key="${c.key}" value="${r[c.key] ?? ''}"></td>`).join('')}
+      </tr>`).join('')}
+    </tbody>`;
+
+  coefTable.querySelectorAll('input').forEach(inp => {
+    inp.onchange = () => {
+      const tr = inp.closest('tr');
+      const idx = +tr.dataset.idx;
+      const key = inp.dataset.key;
+      const val = inp.type === 'number' ? (inp.value === '' ? null : parseFloat(inp.value)) : inp.value;
+      coefData[activeCoefSheet][idx][key] = val;
+      renderM2Fields(); // refresh culture dropdown labels if culture name changed
+    };
+  });
+}
+
+document.querySelectorAll('.coef-sub-tab').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.coef-sub-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCoefSheet = btn.dataset.sheet;
+    renderCoefTable();
+  };
+});
+
+document.getElementById('coef-reset-btn').onclick = () => {
+  coefData = JSON.parse(JSON.stringify(COEF_DEFAULT));
+  renderCoefTable();
+  renderM2Fields();
+};
+
+renderCoefTable();
+renderM2Fields();
 </script>
 </body>
 </html>
