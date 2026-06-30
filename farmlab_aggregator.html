@@ -645,14 +645,14 @@ dlBtn.onclick = () => {
   const sheetData = [
     header,
     ...m1ResultData.rows.map(r => [r.field,
-      r.no3 !== null ? Math.round(r.no3) : '',
-      r.p   !== null ? Math.round(r.p)   : '',
-      r.som !== null ? Math.round(r.som) : ''
+      r.no3 !== null ? r.no3 : '',
+      r.p   !== null ? r.p   : '',
+      r.som !== null ? r.som : ''
     ]),
     ['Общий итог',
-      Math.round(m1ResultData.totals.no3),
-      Math.round(m1ResultData.totals.p),
-      Math.round(m1ResultData.totals.som)
+      m1ResultData.totals.no3,
+      m1ResultData.totals.p,
+      m1ResultData.totals.som
     ]
   ];
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
@@ -905,10 +905,10 @@ m2DlBtn.onclick = () => {
   const header = ['Поле', 'Режим', 'Культура', 'Урожайность, т/га', 'P2O5, мг/кг', 'NO3-N, мг/кг', 'Доза P, кг д.в./га', 'Доза N, кг д.в./га'];
   const sheetData = [header, ...results.map(r => [
     r.field, r.mode, r.culture, r.yieldVal,
-    r.p !== null ? Math.round(r.p) : '',
-    r.no3 !== null ? Math.round(r.no3) : '',
-    r.doseP !== null ? Math.round(r.doseP) : '',
-    r.doseN !== null ? Math.round(r.doseN) : ''
+    r.p !== null ? r.p : '',
+    r.no3 !== null ? r.no3 : '',
+    r.doseP !== null ? Math.round(r.doseP * 100) / 100 : '',
+    r.doseN !== null ? Math.round(r.doseN * 100) / 100 : ''
   ])];
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
   ws['!cols'] = [{wch:22},{wch:12},{wch:16},{wch:16},{wch:14},{wch:14},{wch:16},{wch:16}];
