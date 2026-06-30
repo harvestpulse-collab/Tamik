@@ -389,6 +389,12 @@
           <button class="coef-sub-tab active" data-sheet="bogara">Богара</button>
           <button class="coef-sub-tab" data-sheet="oroshenie">Орошение</button>
         </div>
+        <div class="field-group" style="max-width:280px;margin-bottom:12px">
+          <label>Культура</label>
+          <select id="coef-culture-filter">
+            <option value="">Все культуры</option>
+          </select>
+        </div>
         <div class="table-wrap"><table class="coef-editable" id="coef-table"></table></div>
         <div class="dl-row">
           <button id="coef-reset-btn" class="btn-sm">Сбросить к исходным значениям</button>
@@ -575,7 +581,7 @@ runBtn.onclick = async () => {
     }
 
     const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
-    const fmt = v => v === null ? '—' : Math.round(v);
+    const fmt = v => v === null ? '—' : (Math.round(v * 100) / 100).toFixed(2);
     const unitsLabel = set => set.size === 0 ? '' : Array.from(set).join(' + ');
 
     const rows = keys.map(field => ({
@@ -768,9 +774,9 @@ function renderM2Fields() {
       ${f.fromModule1 ? `
       <div class="src-tags">
         <span class="src-tag">из Модуля 1</span>
-        <span class="src-tag">P2O5: ${f.p !== null ? Math.round(f.p) : '—'} мг/кг</span>
-        <span class="src-tag">NO3-N: ${f.no3 !== null ? Math.round(f.no3) : '—'} мг/кг</span>
-        <span class="src-tag">Гумус: ${f.som !== null ? Math.round(f.som*10)/10 : '—'} %</span>
+        <span class="src-tag">P2O5: ${f.p !== null ? (Math.round(f.p*100)/100).toFixed(2) : '—'} мг/кг</span>
+        <span class="src-tag">NO3-N: ${f.no3 !== null ? (Math.round(f.no3*100)/100).toFixed(2) : '—'} мг/кг</span>
+        <span class="src-tag">Гумус: ${f.som !== null ? (Math.round(f.som*100)/100).toFixed(2) : '—'} %</span>
       </div>` : `
       <div class="field-row-grid" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr;">
         <div class="field-group">
@@ -888,10 +894,10 @@ m2CalcBtn.onclick = () => {
         <td>${r.mode}</td>
         <td>${r.culture}</td>
         <td>${r.yieldVal || '—'}</td>
-        <td>${r.p !== null ? Math.round(r.p) : '—'}</td>
-        <td>${r.no3 !== null ? Math.round(r.no3) : '—'}</td>
-        <td><b>${r.doseP !== null ? Math.round(r.doseP) : '—'}</b></td>
-        <td><b>${r.doseN !== null ? Math.round(r.doseN) : '—'}</b></td>
+        <td>${r.p !== null ? (Math.round(r.p*100)/100).toFixed(2) : '—'}</td>
+        <td>${r.no3 !== null ? (Math.round(r.no3*100)/100).toFixed(2) : '—'}</td>
+        <td><b>${r.doseP !== null ? (Math.round(r.doseP*100)/100).toFixed(2) : '—'}</b></td>
+        <td><b>${r.doseN !== null ? (Math.round(r.doseN*100)/100).toFixed(2) : '—'}</b></td>
       </tr>`).join('')}
     </tbody>`;
 
@@ -919,7 +925,9 @@ m2DlBtn.onclick = () => {
 
 /* ----- Editable coefficient reference table ----- */
 const coefTable = document.getElementById('coef-table');
+const coefCultureFilter = document.getElementById('coef-culture-filter');
 let activeCoefSheet = 'bogara';
+let activeCoefCulture = '';
 
 const COEF_COLS = [
   { key: 'culture', label: 'Культура', type: 'text' },
@@ -934,14 +942,35 @@ const COEF_COLS = [
   { key: 'kuP', label: 'Ку P', type: 'number' },
 ];
 
+function renderCoefCultureFilter() {
+  const sorted = [...coefData[activeCoefSheet]].sort((a, b) => a.culture.localeCompare(b.culture, 'ru'));
+  const prevValue = activeCoefCulture;
+  coefCultureFilter.innerHTML = '<option value="">Все культуры</option>' +
+    sorted.map(c => `<option value="${c.culture}">${c.culture}</option>`).join('');
+  // Keep selection if it still exists on this sheet, otherwise reset to "all"
+  if (sorted.find(c => c.culture === prevValue)) {
+    coefCultureFilter.value = prevValue;
+  } else {
+    activeCoefCulture = '';
+    coefCultureFilter.value = '';
+  }
+}
+
 function renderCoefTable() {
-  const rows = coefData[activeCoefSheet];
+  const allRows = coefData[activeCoefSheet];
+  const rows = activeCoefCulture
+    ? allRows.filter(r => r.culture === activeCoefCulture)
+    : allRows;
+
   coefTable.innerHTML = `
     <thead><tr>${COEF_COLS.map(c => `<th>${c.label}</th>`).join('')}</tr></thead>
     <tbody>
-      ${rows.map((r, idx) => `<tr data-idx="${idx}">
+      ${rows.map(r => {
+        const idx = allRows.indexOf(r);
+        return `<tr data-idx="${idx}">
         ${COEF_COLS.map(c => `<td><input type="${c.type}" step="any" data-key="${c.key}" value="${r[c.key] ?? ''}"></td>`).join('')}
-      </tr>`).join('')}
+      </tr>`;
+      }).join('')}
     </tbody>`;
 
   coefTable.querySelectorAll('input').forEach(inp => {
@@ -951,26 +980,35 @@ function renderCoefTable() {
       const key = inp.dataset.key;
       const val = inp.type === 'number' ? (inp.value === '' ? null : parseFloat(inp.value)) : inp.value;
       coefData[activeCoefSheet][idx][key] = val;
+      if (key === 'culture') { renderCoefCultureFilter(); }
       renderM2Fields(); // refresh culture dropdown labels if culture name changed
     };
   });
 }
+
+coefCultureFilter.onchange = () => {
+  activeCoefCulture = coefCultureFilter.value;
+  renderCoefTable();
+};
 
 document.querySelectorAll('.coef-sub-tab').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.coef-sub-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeCoefSheet = btn.dataset.sheet;
+    renderCoefCultureFilter();
     renderCoefTable();
   };
 });
 
 document.getElementById('coef-reset-btn').onclick = () => {
   coefData = JSON.parse(JSON.stringify(COEF_DEFAULT));
+  renderCoefCultureFilter();
   renderCoefTable();
   renderM2Fields();
 };
 
+renderCoefCultureFilter();
 renderCoefTable();
 renderM2Fields();
 </script>
