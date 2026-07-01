@@ -611,6 +611,7 @@ const runBtn   = document.getElementById('run-btn');
 const clearBtn = document.getElementById('clear-btn');
 const statusEl = document.getElementById('status');
 const resultSec = document.getElementById('result-section');
+const fmt = v => v === null ? '—' : (Math.round(v * 100) / 100).toFixed(2);
 const outTable = document.getElementById('out-table');
 
 function recalcTotals(rows) {
@@ -763,7 +764,6 @@ runBtn.onclick = async () => {
     }
 
     const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
-    const fmt = v => v === null ? '—' : (Math.round(v * 100) / 100).toFixed(2);
     const unitsLabel = set => set.size === 0 ? '' : Array.from(set).join(' + ');
 
     const rows = keys.map(field => ({
