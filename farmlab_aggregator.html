@@ -344,6 +344,13 @@
   .m3-total-warn { border-color: var(--danger); }
 
   #fert-catalog-table input[type="text"] { width: 170px; text-align: left; }
+  .save-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+    background: var(--text); color: var(--bg); padding: 8px 18px; border-radius: 20px;
+    font-size: 12.5px; font-weight: 500; z-index: 9999; opacity: 0;
+    transition: opacity .2s, transform .25s; pointer-events: none;
+  }
+  .save-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -354,6 +361,10 @@
       <h1>FarmLab — Инструменты агронома</h1>
       <p>Модуль 1: сводная по полям · Модуль 2: расчёт доз внесения удобрений · Модуль 3: подбор удобрений</p>
     </div>
+    <button class="theme-toggle" id="clear-storage-btn" type="button" title="Очистить сохранённые данные" style="color:var(--text-dim)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+      Сбросить память
+    </button>
     <button class="theme-toggle" id="theme-toggle" type="button">
       <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       <span id="theme-label">Тёмная тема</span>
@@ -508,6 +519,7 @@
 
   <footer>Tamik-tech</footer>
 </div>
+<div class="save-toast" id="save-toast">💾 Сохранено</div>
 
 <script>
 /* ============================================================
@@ -842,6 +854,77 @@ let coefData = JSON.parse(JSON.stringify(COEF_DEFAULT)); // editable copy
 let m2Fields = []; // { id, name, no3, p, som, mode:'bogara'|'oroshenie', culture, yield, fromModule1:bool }
 let m2Counter = 0;
 
+/* ============================================================
+   LOCAL STORAGE — автосохранение состояния
+============================================================ */
+const LS_COEF = 'farmlab_coef_v1';
+const LS_FIELDS = 'farmlab_m2fields_v1';
+
+let _toastTimer = null;
+function showSaveToast() {
+  const toast = document.getElementById('save-toast');
+  if (!toast) return;
+  toast.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
+}
+
+function lsSave() {
+  try {
+    const coefChanged = JSON.stringify(coefData) !== JSON.stringify(COEF_DEFAULT);
+    if (coefChanged) {
+      localStorage.setItem(LS_COEF, JSON.stringify(coefData));
+    } else {
+      localStorage.removeItem(LS_COEF);
+    }
+    const toSave = m2Fields.map(f => ({
+      id: f.id, name: f.name, sourceName: f.sourceName,
+      no3: f.fromModule1 ? null : f.no3,
+      p: f.fromModule1 ? null : f.p,
+      som: f.fromModule1 ? null : f.som,
+      mode: f.mode, culture: f.culture, yieldVal: f.yieldVal,
+      fromModule1: f.fromModule1
+    }));
+    localStorage.setItem(LS_FIELDS, JSON.stringify(toSave));
+    showSaveToast();
+  } catch(e) { }
+}
+
+function lsLoad() {
+  try {
+    const savedCoef = localStorage.getItem(LS_COEF);
+    if (savedCoef) coefData = JSON.parse(savedCoef);
+
+    const savedFields = localStorage.getItem(LS_FIELDS);
+    if (savedFields) {
+      const loaded = JSON.parse(savedFields);
+      m2Fields = loaded;
+      m2Counter = loaded.reduce((max, f) => {
+        const n = parseInt(f.id.replace('f','')) || 0;
+        return Math.max(max, n + 1);
+      }, 0);
+    }
+  } catch(e) { /* если данные повреждены — игнорируем */ }
+}
+
+lsLoad(); // загружаем при старте
+
+document.getElementById('clear-storage-btn').onclick = () => {
+  if (!confirm('Сбросить сохранённые данные? Коэффициенты вернутся к исходным, поля Модуля 2 очистятся.')) return;
+  localStorage.removeItem(LS_COEF);
+  localStorage.removeItem(LS_FIELDS);
+  coefData = JSON.parse(JSON.stringify(COEF_DEFAULT));
+  m2Fields = [];
+  m2Counter = 0;
+  renderCoefCultureFilter();
+  renderCoefTable();
+  renderM2Fields();
+  const toast = document.getElementById('save-toast');
+  toast.textContent = '🗑 Память очищена';
+  toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); toast.textContent = '💾 Сохранено'; }, 2000);
+};
+
 const m2FieldsList = document.getElementById('m2-fields-list');
 const m2EmptyHint  = document.getElementById('m2-empty-hint');
 const m2CalcBtn    = document.getElementById('m2-calc-btn');
@@ -895,6 +978,7 @@ function addManualField() {
     fromModule1: false
   });
   m2EmptyHint.style.display = 'none';
+  lsSave();
   renderM2Fields();
 }
 document.getElementById('m2-add-field-btn').onclick = addManualField;
@@ -971,22 +1055,29 @@ function renderM2Fields() {
     const no3Input = row.querySelector('.f-no3');
     const pInput = row.querySelector('.f-p');
     const somInput = row.querySelector('.f-som');
-    if (no3Input) no3Input.oninput = e => { f.no3 = e.target.value === '' ? null : parseFloat(e.target.value); };
-    if (pInput) pInput.oninput = e => { f.p = e.target.value === '' ? null : parseFloat(e.target.value); };
-    if (somInput) somInput.oninput = e => { f.som = e.target.value === '' ? null : parseFloat(e.target.value); };
+    if (no3Input) no3Input.oninput = e => { f.no3 = e.target.value === '' ? null : parseFloat(e.target.value); lsSave(); };
+    if (pInput) pInput.oninput = e => { f.p = e.target.value === '' ? null : parseFloat(e.target.value); lsSave(); };
+    if (somInput) somInput.oninput = e => { f.som = e.target.value === '' ? null : parseFloat(e.target.value); lsSave(); };
+
+    row.querySelector('.f-name').oninput = e => { f.name = e.target.value; lsSave(); };
+    row.querySelector('.f-yield').oninput = e => { f.yieldVal = e.target.value; lsSave(); };
+    row.querySelector('.f-culture').onchange = e => { f.culture = e.target.value; lsSave(); };
 
     row.querySelector('.irr-bogara').onclick = () => {
       f.mode = 'bogara';
       if (!coefData.bogara.find(c => c.culture === f.culture)) f.culture = coefData.bogara[0].culture;
+      lsSave();
       renderM2Fields();
     };
     row.querySelector('.irr-oroshenie').onclick = () => {
       f.mode = 'oroshenie';
       if (!coefData.oroshenie.find(c => c.culture === f.culture)) f.culture = coefData.oroshenie[0].culture;
+      lsSave();
       renderM2Fields();
     };
     row.querySelector('.remove-field').onclick = () => {
       m2Fields = m2Fields.filter(x => x.id !== id);
+      lsSave();
       renderM2Fields();
       if (!m2Fields.length) m2EmptyHint.style.display = 'block';
     };
@@ -1144,6 +1235,7 @@ function renderCoefTable() {
       coefData[activeCoefSheet][idx][key] = val;
       if (key === 'culture') { renderCoefCultureFilter(); }
       renderM2Fields(); // refresh culture dropdown labels if culture name changed
+      lsSave();
     };
   });
 }
@@ -1165,6 +1257,7 @@ document.querySelectorAll('.coef-sub-tab').forEach(btn => {
 
 document.getElementById('coef-reset-btn').onclick = () => {
   coefData = JSON.parse(JSON.stringify(COEF_DEFAULT));
+  lsSave();
   renderCoefCultureFilter();
   renderCoefTable();
   renderM2Fields();
