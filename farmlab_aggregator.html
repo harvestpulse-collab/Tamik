@@ -2,8 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>FarmLab — Инструменты агронома</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -81,6 +82,12 @@
     min-height: 100vh;
     padding: 2rem 1rem;
     transition: background 0.2s, color 0.2s;
+  }
+
+  /* Telegram Mini App: respect notches/safe areas and Telegram's own top inset */
+  body.tg-webapp {
+    padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
   }
 
   .container { max-width: 980px; margin: 0 auto; }
@@ -518,6 +525,33 @@ function applyTheme(theme) {
 }
 
 let currentTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+/* ============================================================
+   TELEGRAM MINI APP INTEGRATION
+   Активируется автоматически, только если страница открыта внутри
+   Telegram (через кнопку WebApp у бота). В обычном браузере — no-op.
+============================================================ */
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  document.body.classList.add('tg-webapp');
+  currentTheme = tg.colorScheme === 'dark' ? 'dark' : 'light';
+
+  const syncTgChrome = () => {
+    const bgHex = currentTheme === 'dark' ? '#16181d' : '#f4f6f9';
+    try { tg.setHeaderColor(bgHex); } catch (e) {}
+    try { tg.setBackgroundColor(bgHex); } catch (e) {}
+  };
+  syncTgChrome();
+
+  tg.onEvent('themeChanged', () => {
+    currentTheme = tg.colorScheme === 'dark' ? 'dark' : 'light';
+    applyTheme(currentTheme);
+    syncTgChrome();
+  });
+}
+
 applyTheme(currentTheme);
 
 themeToggleBtn.onclick = () => {
