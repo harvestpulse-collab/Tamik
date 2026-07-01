@@ -304,6 +304,9 @@
     border-radius: 6px; text-align: right; background: var(--input-bg); color: var(--text);
   }
   table.fert-table input[readonly] { background: var(--thead-bg); color: var(--accent-text); font-weight: 600; }
+  table.fert-table input.m3-p-note, table.fert-table input.m3-n-note {
+    width: 220px; text-align: left; font-weight: 400; color: var(--text);
+  }
   .fert-content-badge { font-size: 11.5px; color: var(--text-muted); }
   .m3-row-base td { background: var(--total-bg); }
 
@@ -1127,10 +1130,10 @@ let m3ActiveFieldId = null;
 
 function defaultRows(defaultFertName) {
   return [
-    { method: 'основное',           fert: defaultFertName, amount: 0 },
-    { method: 'дополнительное 1',   fert: '', amount: 0 },
-    { method: 'дополнительное 2',   fert: '', amount: 0 },
-    { method: 'дополнительное 3',   fert: '', amount: 0 },
+    { method: 'основное',           fert: defaultFertName, amount: 0, note: '' },
+    { method: 'дополнительное 1',   fert: '', amount: 0, note: '' },
+    { method: 'дополнительное 2',   fert: '', amount: 0, note: '' },
+    { method: 'дополнительное 3',   fert: '', amount: 0, note: '' },
   ];
 }
 
@@ -1259,6 +1262,7 @@ function renderSectionRows(rows, cls) {
       <td>${(Math.round(amt * fert.P / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.K / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.S / 100 * 100) / 100).toFixed(2)}</td>
+      <td><input type="text" class="${cls}-note" value="${(row.note || '').replace(/"/g,'&quot;')}" placeholder="напр. До посева / обоснование"></td>
     </tr>`;
   }).join('');
 }
@@ -1281,7 +1285,7 @@ function renderM3FieldContent() {
       <div class="table-wrap"><table class="fert-table">
         <thead><tr>
           <th>Способ внесения</th><th>Вид удобрения</th><th>Содержание</th>
-          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th>
+          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th><th>Примечания</th>
         </tr></thead>
         <tbody class="m3-p-body">${renderSectionRows(field.pRows, 'm3-p')}</tbody>
       </table></div>
@@ -1290,7 +1294,7 @@ function renderM3FieldContent() {
       <div class="table-wrap"><table class="fert-table">
         <thead><tr>
           <th>Способ внесения</th><th>Вид удобрения</th><th>Содержание</th>
-          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th>
+          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th><th>Примечания</th>
         </tr></thead>
         <tbody class="m3-n-body">${renderSectionRows(field.nRows, 'm3-n')}</tbody>
       </table></div>
@@ -1325,10 +1329,12 @@ function renderM3FieldContent() {
       const idx = +tr.dataset.idx;
       const sel = tr.querySelector('.' + cls + '-fert');
       const inp = tr.querySelector('.' + cls + '-amount');
+      const noteInp = tr.querySelector('.' + cls + '-note');
       sel.onchange = e => { rows[idx].fert = e.target.value; renderM3FieldContent(); };
       if (!inp.readOnly) {
         inp.oninput = e => { rows[idx].amount = e.target.value === '' ? 0 : parseFloat(e.target.value); renderM3FieldContent(); };
       }
+      noteInp.oninput = e => { rows[idx].note = e.target.value; };
     });
   }
   wireSection(field.pRows, 'm3-p');
@@ -1339,7 +1345,7 @@ function renderM3FieldContent() {
 
 function buildFieldSheetAOA(field) {
   const bal = calcFieldBalance(field);
-  const header = ['Способ внесения', 'Вид удобрения', 'N, %', 'P, %', 'K, %', 'S, %', 'Необходимо внести, кг/га', 'Внесено N, кг/га', 'Внесено P, кг/га', 'Внесено K, кг/га', 'Внесено S, кг/га'];
+  const header = ['Способ внесения', 'Вид удобрения', 'N, %', 'P, %', 'K, %', 'S, %', 'Необходимо внести, кг/га', 'Внесено N, кг/га', 'Внесено P, кг/га', 'Внесено K, кг/га', 'Внесено S, кг/га', 'Примечания'];
   const rowToAoa = row => {
     const fert = fertByName(row.fert);
     const amt = row.amount || 0;
@@ -1350,6 +1356,7 @@ function buildFieldSheetAOA(field) {
       Math.round(amt * fert.P / 100 * 100) / 100,
       Math.round(amt * fert.K / 100 * 100) / 100,
       Math.round(amt * fert.S / 100 * 100) / 100,
+      row.note || '',
     ];
   };
   return [
@@ -1370,7 +1377,7 @@ function buildFieldSheetAOA(field) {
 
 function downloadFieldXlsx(field) {
   const ws = XLSX.utils.aoa_to_sheet(buildFieldSheetAOA(field));
-  ws['!cols'] = [{ wch: 20 }, { wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+  ws['!cols'] = [{ wch: 20 }, { wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, field.name.replace(/[\\/?*[\]:]/g, '').slice(0, 31) || 'Поле');
   XLSX.writeFile(wb, `внесение_удобрений_${field.name}.xlsx`.replace(/[\\/?*[\]:]/g, ''));
@@ -1380,7 +1387,7 @@ document.getElementById('m3-dl-all-btn').onclick = () => {
   const wb = XLSX.utils.book_new();
   m3Fields.forEach((f, i) => {
     const ws = XLSX.utils.aoa_to_sheet(buildFieldSheetAOA(f));
-    ws['!cols'] = [{ wch: 20 }, { wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    ws['!cols'] = [{ wch: 20 }, { wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
     let sheetName = `${i + 1}-${f.name}`.replace(/[\\/?*[\]:]/g, '').slice(0, 31);
     XLSX.utils.book_append_sheet(wb, ws, sheetName || ('Поле' + (i + 1)));
   });
