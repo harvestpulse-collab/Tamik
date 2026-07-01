@@ -253,6 +253,10 @@
   .remove-field { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 18px; padding: 4px 8px; }
   .remove-field:hover { color: var(--danger); }
 
+  .del-row-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; padding: 3px 6px; border-radius: 5px; opacity: 0; transition: opacity .15s, color .12s; }
+  tr:hover .del-row-btn { opacity: 1; }
+  .del-row-btn:hover { color: var(--danger); background: var(--hover); }
+
   details.coef-table { margin-top: 1.25rem; }
   details.coef-table summary {
     cursor: pointer; font-size: 14px; font-weight: 500; color: var(--accent);
@@ -604,6 +608,58 @@ const clearBtn = document.getElementById('clear-btn');
 const statusEl = document.getElementById('status');
 const resultSec = document.getElementById('result-section');
 const outTable = document.getElementById('out-table');
+
+function recalcTotals(rows) {
+  const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+  return {
+    no3: avg(rows.map(r => r.no3).filter(v => v !== null)),
+    p:   avg(rows.map(r => r.p).filter(v => v !== null)),
+    som: avg(rows.map(r => r.som).filter(v => v !== null)),
+  };
+}
+
+function renderM1Table() {
+  if (!m1ResultData) return;
+  const { rows } = m1ResultData;
+  const totals = recalcTotals(rows);
+  m1ResultData.totals = totals;
+
+  outTable.innerHTML = `
+    <thead><tr>
+      <th>Название поля</th>
+      <th>Среднее NO3-N [mg/kg]</th>
+      <th>Среднее P2O5 [mg/kg]</th>
+      <th>Среднее SOM [%]</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      ${rows.map((r, idx) => `<tr data-idx="${idx}">
+        <td>${r.field}</td>
+        <td>${fmt(r.no3)}</td>
+        <td>${r.p === null && r.pRejected > 0
+            ? `<span style="color:var(--danger)" title="Данные в ${r.pUnit}, не mg/kg">⚠️ нет mg/kg</span>`
+            : fmt(r.p)}</td>
+        <td>${fmt(r.som)}</td>
+        <td><button class="del-row-btn" title="Удалить поле">✕</button></td>
+      </tr>`).join('')}
+      <tr class="total">
+        <td>Общий итог</td>
+        <td>${fmt(totals.no3)}</td>
+        <td>${fmt(totals.p)}</td>
+        <td>${fmt(totals.som)}</td>
+        <td></td>
+      </tr>
+    </tbody>`;
+
+  outTable.querySelectorAll('.del-row-btn').forEach(btn => {
+    btn.onclick = () => {
+      const idx = +btn.closest('tr').dataset.idx;
+      m1ResultData.rows.splice(idx, 1);
+      renderM1Table();
+      syncFieldsFromModule1();
+    };
+  });
+}
 const dlBtn    = document.getElementById('dl-btn');
 
 document.getElementById('browse-lbl').onclick = () => fi.click();
@@ -728,29 +784,9 @@ runBtn.onclick = async () => {
 
     m1ResultData = { rows, totals };
 
-    outTable.innerHTML = `
-      <thead><tr>
-        <th>Название поля</th>
-        <th>Среднее NO3-N [mg/kg]</th>
-        <th>Среднее P2O5 [mg/kg]</th>
-        <th>Среднее SOM [%]</th>
-      </tr></thead>
-      <tbody>
-        ${rows.map(r => `<tr>
-          <td>${r.field}</td>
-          <td>${fmt(r.no3)}</td>
-          <td>${r.p === null && r.pRejected > 0
-              ? `<span style="color:var(--danger)" title="Данные были в ${r.pUnit}, не в mg/kg — исключены из расчёта">⚠️ нет данных в mg/kg</span>`
-              : fmt(r.p)}</td>
-          <td>${fmt(r.som)}</td>
-        </tr>`).join('')}
-        <tr class="total">
-          <td>Общий итог</td>
-          <td>${fmt(totals.no3)}</td>
-          <td>${fmt(totals.p)}</td>
-          <td>${fmt(totals.som)}</td>
-        </tr>
-      </tbody>`;
+    outTable.innerHTML = '';
+    m1ResultData = { rows, totals };
+    renderM1Table();
 
     resultSec.style.display = 'block';
     statusEl.className = 'status';
