@@ -290,8 +290,7 @@
     background: var(--accent-light); color: var(--accent-text); padding: 8px 14px;
     border-radius: 8px; font-size: 13px; font-weight: 600;
   }
-
-  .fert-section-title { font-size: 14px; font-weight: 600; margin: 1.1rem 0 0.6rem; color: var(--text); }
+  .m3-target-chip .rem { font-weight: 400; opacity: 0.85; margin-left: 6px; }
 
   table.fert-table { width: 100%; }
   table.fert-table th, table.fert-table td { white-space: nowrap; padding: 7px 10px; }
@@ -303,8 +302,15 @@
     width: 90px; padding: 6px 8px; font-size: 12.5px; border: 1px solid var(--border);
     border-radius: 6px; text-align: right; background: var(--input-bg); color: var(--text);
   }
-  table.fert-table input[readonly] { background: var(--thead-bg); color: var(--accent-text); font-weight: 600; }
   .fert-content-badge { font-size: 11.5px; color: var(--text-muted); }
+  .fert-auto-btn {
+    padding: 5px 9px; font-size: 11.5px; border-radius: 6px; border: 1px dashed var(--accent);
+    background: var(--accent-light); color: var(--accent-text); cursor: pointer; margin-left: 6px;
+  }
+  .fert-auto-btn:hover { background: var(--accent); color: #fff; border-style: solid; }
+  .fert-row-remove { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 17px; padding: 2px 6px; }
+  .fert-row-remove:hover { color: var(--danger); }
+
   tr.m3-note-row td { padding: 4px 10px 12px; border-bottom: 1px solid var(--border-light); white-space: normal; }
   .m3-note-inner { display: flex; align-items: center; gap: 8px; }
   .m3-note-inner label { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; }
@@ -312,7 +318,6 @@
     flex: 1; padding: 6px 10px; font-size: 12.5px; border: 1px solid var(--border);
     border-radius: 6px; background: var(--input-bg); color: var(--text);
   }
-  .m3-row-base td { background: var(--total-bg); }
 
   .m3-totals { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
   .m3-total-card {
@@ -323,13 +328,7 @@
   .m3-total-ok { border-color: var(--success); }
   .m3-total-warn { border-color: var(--danger); }
 
-  .npk-calc-row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-bottom: 10px; }
-  .npk-result { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-  .npk-chip {
-    background: var(--thead-bg); border: 1px solid var(--card-border); border-radius: 8px;
-    padding: 8px 14px; font-size: 12.5px; color: var(--text-muted); min-width: 90px;
-  }
-  .npk-chip b { display: block; font-size: 16px; color: var(--text); margin-top: 2px; }
+  #fert-catalog-table input[type="text"] { width: 170px; text-align: left; }
 </style>
 </head>
 <body>
@@ -464,19 +463,16 @@
   <div class="tab-panel" id="tab-m3">
 
     <div class="card">
-      <h2>NPK-калькулятор удобрений</h2>
-      <p class="sub">Выберите удобрение и количество — увидите содержание питательных веществ (пропорции).</p>
-      <div class="npk-calc-row">
-        <div class="field-group" style="min-width:240px">
-          <label>Удобрение</label>
-          <select id="npk-fert-select"></select>
-        </div>
-        <div class="field-group" style="max-width:140px">
-          <label>Количество, кг</label>
-          <input type="number" id="npk-amount" value="100" min="0" step="1">
-        </div>
+      <h2>Справочник удобрений</h2>
+      <p class="sub">Редактируйте содержание N/P/K/S у существующих удобрений или добавляйте новые — они сразу появятся в выпадающих списках ниже.</p>
+      <div class="table-wrap"><table class="coef-editable" id="fert-catalog-table"></table></div>
+      <div class="dl-row">
+        <button id="fert-add-btn" class="btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Добавить удобрение
+        </button>
+        <button id="fert-reset-btn" class="btn-sm">Сбросить к исходным значениям</button>
       </div>
-      <div class="npk-result" id="npk-result"></div>
     </div>
 
     <div id="m3-empty-hint" class="empty-hint" style="display:none">
@@ -1108,11 +1104,12 @@ renderM2Fields();
    MODULE 3 — Подбор удобрений (закрытие доз из Модуля 2)
 ============================================================ */
 
-// Справочник удобрений: содержание д.в. в %, N / P (P2O5) / K (K2O) / S
-const FERT_LIST = [
+// Справочник удобрений: содержание д.в. в %, N / P (P2O5) / K (K2O) / S — редактируемый
+const FERT_DEFAULT = [
   { name: 'Азофоска (Нитроаммофоска)', N: 16, P: 16, K: 16, S: 0 },
   { name: 'Аммиачная селитра',         N: 34, P: 0,  K: 0,  S: 0 },
   { name: 'Аммофос',                   N: 12, P: 52, K: 0,  S: 0 },
+  { name: 'Моноаммонийфосфат',         N: 12, P: 61, K: 0,  S: 0 },
   { name: 'Двойной суперфосфат',       N: 12, P: 52, K: 0,  S: 0 },
   { name: 'Диаммофоска',               N: 10, P: 26, K: 26, S: 0 },
   { name: 'КАС 32',                    N: 32, P: 0,  K: 0,  S: 0 },
@@ -1125,19 +1122,71 @@ const FERT_LIST = [
   { name: 'Суперфосфат',               N: 9,  P: 30, K: 0,  S: 0 },
   { name: 'Калий хлорестый',           N: 0,  P: 0,  K: 60, S: 0 },
 ];
+let fertCatalog = JSON.parse(JSON.stringify(FERT_DEFAULT)); // editable copy
+
 function fertByName(name) {
-  return FERT_LIST.find(f => f.name === name) || { name: '', N: 0, P: 0, K: 0, S: 0 };
+  return fertCatalog.find(f => f.name === name) || { name: '', N: 0, P: 0, K: 0, S: 0 };
 }
 
-let m3Fields = [];          // synced from Module 2 results
+/* ----- Editable fertilizer catalog table ----- */
+const fertCatalogTable = document.getElementById('fert-catalog-table');
+const FERT_COLS = [
+  { key: 'name', label: 'Название удобрения', type: 'text' },
+  { key: 'N',    label: 'N, %',               type: 'number' },
+  { key: 'P',    label: 'P (P2O5), %',        type: 'number' },
+  { key: 'K',    label: 'K (K2O), %',         type: 'number' },
+  { key: 'S',    label: 'S, %',               type: 'number' },
+];
+
+function renderFertCatalogTable() {
+  fertCatalogTable.innerHTML = `
+    <thead><tr>${FERT_COLS.map(c => `<th>${c.label}</th>`).join('')}<th></th></tr></thead>
+    <tbody>
+      ${fertCatalog.map((f, idx) => `<tr data-idx="${idx}">
+        ${FERT_COLS.map(c => `<td><input type="${c.type}" step="any" data-key="${c.key}" value="${(f[c.key] ?? '').toString().replace(/"/g,'&quot;')}"></td>`).join('')}
+        <td><button class="fert-row-remove fert-cat-remove" title="Удалить удобрение">✕</button></td>
+      </tr>`).join('')}
+    </tbody>`;
+
+  fertCatalogTable.querySelectorAll('input').forEach(inp => {
+    inp.onchange = () => {
+      const tr = inp.closest('tr');
+      const idx = +tr.dataset.idx;
+      const key = inp.dataset.key;
+      const val = inp.type === 'number' ? (inp.value === '' ? 0 : parseFloat(inp.value)) : inp.value;
+      fertCatalog[idx][key] = val;
+      renderM3FieldContent(); // refresh dropdown labels / content badges downstream
+    };
+  });
+  fertCatalogTable.querySelectorAll('.fert-cat-remove').forEach(btn => {
+    btn.onclick = () => {
+      const idx = +btn.closest('tr').dataset.idx;
+      fertCatalog.splice(idx, 1);
+      renderFertCatalogTable();
+      renderM3FieldContent();
+    };
+  });
+}
+
+document.getElementById('fert-add-btn').onclick = () => {
+  fertCatalog.push({ name: 'Новое удобрение', N: 0, P: 0, K: 0, S: 0 });
+  renderFertCatalogTable();
+};
+document.getElementById('fert-reset-btn').onclick = () => {
+  fertCatalog = JSON.parse(JSON.stringify(FERT_DEFAULT));
+  renderFertCatalogTable();
+  renderM3FieldContent();
+};
+renderFertCatalogTable();
+
+/* ----- Fields synced from Module 2, each with a free-form list of fertilizer rows ----- */
+let m3Fields = [];
 let m3ActiveFieldId = null;
 
-function defaultRows(defaultFertName) {
+function defaultRows() {
   return [
-    { method: 'основное',           fert: defaultFertName, amount: 0, note: '' },
-    { method: 'дополнительное 1',   fert: '', amount: 0, note: '' },
-    { method: 'дополнительное 2',   fert: '', amount: 0, note: '' },
-    { method: 'дополнительное 3',   fert: '', amount: 0, note: '' },
+    { fert: '', amount: 0, note: '' },
+    { fert: '', amount: 0, note: '' },
   ];
 }
 
@@ -1161,8 +1210,7 @@ function syncFieldsFromModule2() {
         culture: r.culture,
         yieldVal: r.yieldVal,
         targetP, targetN,
-        pRows: defaultRows('Аммофос'),
-        nRows: defaultRows('Аммиачная селитра'),
+        rows: defaultRows(),
       });
     } else {
       existing.targetP = targetP;
@@ -1200,78 +1248,80 @@ function renderM3FieldTabs() {
   });
 }
 
-// Закрывает дозы N и P для поля: дополнительные внесения задаются вручную,
-// "основное" внесение по каждому элементу автоматически добирает остаток до целевой дозы.
-// Сначала закрывается фосфор (с учётом азота, который попутно даёт фосфорное удобрение),
-// затем закрывается азот с учётом того азота, что уже пришёл с фосфорными удобрениями.
-function calcFieldBalance(field) {
-  const pRows = field.pRows;
-  const nRows = field.nRows;
+// Суммирует, сколько N/P/K/S фактически внесено по всем строкам поля.
+function computeFieldTotals(field) {
+  let N = 0, P = 0, K = 0, S = 0;
+  field.rows.forEach(row => {
+    const fert = fertByName(row.fert);
+    const amt = parseFloat(row.amount) || 0;
+    N += amt * fert.N / 100;
+    P += amt * fert.P / 100;
+    K += amt * fert.K / 100;
+    S += amt * fert.S / 100;
+  });
+  return { N, P, K, S };
+}
 
-  let pFromDopP = 0, nFromDopP = 0;
-  for (let i = 1; i < pRows.length; i++) {
-    const fert = fertByName(pRows[i].fert);
-    const amt = parseFloat(pRows[i].amount) || 0;
-    pFromDopP += amt * fert.P / 100;
-    nFromDopP += amt * fert.N / 100;
+// Ненавязчивый помощник: по кнопке "авто" в конкретной строке подбирает количество
+// этого удобрения, чтобы закрыть остаток дозы N или P2O5 (смотря чего в удобрении больше) —
+// с учётом того, что уже внесено остальными строками. Результат можно сразу же
+// отредактировать вручную, ничего не блокируется.
+function autoFillRow(field, idx) {
+  const row = field.rows[idx];
+  const fert = fertByName(row.fert);
+  if (!fert.name) return; // удобрение не выбрано — считать нечего
+
+  let otherN = 0, otherP = 0;
+  field.rows.forEach((r, i) => {
+    if (i === idx) return;
+    const f = fertByName(r.fert);
+    const amt = parseFloat(r.amount) || 0;
+    otherN += amt * f.N / 100;
+    otherP += amt * f.P / 100;
+  });
+
+  const remainingP = field.targetP - otherP;
+  const remainingN = field.targetN - otherN;
+
+  // Приоритет — тот элемент, которого в удобрении больше (P-удобрения закрывают P, N-удобрения закрывают N)
+  let amount = 0;
+  if (fert.P >= fert.N && fert.P > 0) {
+    amount = remainingP > 0 ? remainingP / (fert.P / 100) : 0;
+  } else if (fert.N > 0) {
+    amount = remainingN > 0 ? remainingN / (fert.N / 100) : 0;
   }
-  const baseFertP = fertByName(pRows[0].fert);
-  const remainingP = field.targetP - pFromDopP;
-  const baseAmountP = baseFertP.P > 0 ? Math.max(0, remainingP) / (baseFertP.P / 100) : 0;
-  pRows[0].amount = Math.round(baseAmountP * 100) / 100;
-  const nFromBaseP = pRows[0].amount * baseFertP.N / 100;
-  const pDeliveredP_section = pFromDopP + pRows[0].amount * baseFertP.P / 100;
-  const nFromPSection = nFromDopP + nFromBaseP;
-
-  let nFromDopN = 0, pFromDopN = 0;
-  for (let i = 1; i < nRows.length; i++) {
-    const fert = fertByName(nRows[i].fert);
-    const amt = parseFloat(nRows[i].amount) || 0;
-    nFromDopN += amt * fert.N / 100;
-    pFromDopN += amt * fert.P / 100;
-  }
-  const baseFertN = fertByName(nRows[0].fert);
-  const remainingN = field.targetN - nFromPSection - nFromDopN;
-  const baseAmountN = baseFertN.N > 0 ? Math.max(0, remainingN) / (baseFertN.N / 100) : 0;
-  nRows[0].amount = Math.round(baseAmountN * 100) / 100;
-  const nFromBaseN = nRows[0].amount * baseFertN.N / 100;
-  const pFromBaseN = nRows[0].amount * baseFertN.P / 100;
-
-  const nDeliveredTotal = nFromPSection + nFromDopN + nFromBaseN;
-  const pDeliveredTotal = pDeliveredP_section + pFromDopN + pFromBaseN;
-
-  const closesP = baseFertP.P > 0 || remainingP <= 0;
-  const closesN = baseFertN.N > 0 || remainingN <= 0;
-
-  return { pDeliveredTotal, nDeliveredTotal, closesP, closesN };
+  row.amount = Math.round(Math.max(0, amount) * 100) / 100;
+  renderM3FieldContent();
 }
 
 function fertSelectHtml(cls, selected) {
   return `<select class="${cls}"><option value="">— не выбрано —</option>` +
-    FERT_LIST.map(f => `<option value="${f.name.replace(/"/g, '&quot;')}" ${f.name === selected ? 'selected' : ''}>${f.name}</option>`).join('') +
+    fertCatalog.map(f => `<option value="${f.name.replace(/"/g, '&quot;')}" ${f.name === selected ? 'selected' : ''}>${f.name}</option>`).join('') +
     `</select>`;
 }
 
-function renderSectionRows(rows, cls) {
-  return rows.map((row, idx) => {
+function renderFieldRows(field) {
+  return field.rows.map((row, idx) => {
     const fert = fertByName(row.fert);
-    const isBase = idx === 0;
     const amt = row.amount || 0;
-    return `<tr data-idx="${idx}" class="${isBase ? 'm3-row-base' : ''}">
-      <td>${isBase ? '<b>основное</b>' : row.method}</td>
-      <td>${fertSelectHtml(cls + '-fert', row.fert)}</td>
+    return `<tr data-idx="${idx}">
+      <td>${fertSelectHtml('m3-row-fert', row.fert)}</td>
       <td class="fert-content-badge">N ${fert.N}% · P ${fert.P}% · K ${fert.K}% · S ${fert.S}%</td>
-      <td><input type="number" class="${cls}-amount" min="0" step="0.1" value="${amt}" ${isBase ? 'readonly title="Рассчитывается автоматически — добирает остаток дозы"' : ''}></td>
+      <td>
+        <input type="number" class="m3-row-amount" min="0" step="0.1" value="${amt}">
+        <button type="button" class="fert-auto-btn m3-row-auto" title="Подобрать количество автоматически, чтобы закрыть остаток дозы">⚡ авто</button>
+      </td>
       <td>${(Math.round(amt * fert.N / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.P / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.K / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.S / 100 * 100) / 100).toFixed(2)}</td>
+      <td><button type="button" class="fert-row-remove m3-row-remove" title="Удалить строку">✕</button></td>
     </tr>
     <tr class="m3-note-row" data-idx="${idx}">
       <td colspan="8" class="m3-note-cell">
         <div class="m3-note-inner">
           <label>Примечания:</label>
-          <input type="text" class="${cls}-note" value="${(row.note || '').replace(/"/g,'&quot;')}" placeholder="напр. До посева / обоснование агронома">
+          <input type="text" class="m3-row-note" value="${(row.note || '').replace(/"/g,'&quot;')}" placeholder="напр. До посева / обоснование агронома">
         </div>
       </td>
     </tr>`;
@@ -1282,48 +1332,40 @@ function renderM3FieldContent() {
   const field = m3Fields.find(f => f.id === m3ActiveFieldId);
   if (!field) { m3FieldContent.innerHTML = ''; return; }
 
-  const bal = calcFieldBalance(field);
+  const totals = computeFieldTotals(field);
+  const remP = field.targetP - totals.P;
+  const remN = field.targetN - totals.N;
+  const okP = remP <= 0.05;
+  const okN = remN <= 0.05;
 
   m3FieldContent.innerHTML = `
     <div class="card">
       <h2>${field.name}${field.culture ? ' · ' + field.culture : ''}${field.yieldVal ? ' · ' + field.yieldVal + ' т/га' : ''}</h2>
-      <div class="m3-targets">
-        <div class="m3-target-chip">Целевая доза P2O5: ${field.targetP} кг/га</div>
-        <div class="m3-target-chip">Целевая доза N: ${field.targetN} кг/га</div>
-      </div>
-
-      <div class="fert-section-title">Фосфорные удобрения</div>
-      <div class="table-wrap"><table class="fert-table">
-        <thead><tr>
-          <th>Способ внесения</th><th>Вид удобрения</th><th>Содержание</th>
-          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th>
-        </tr></thead>
-        <tbody class="m3-p-body">${renderSectionRows(field.pRows, 'm3-p')}</tbody>
-      </table></div>
-
-      <div class="fert-section-title">Азотные удобрения</div>
-      <div class="table-wrap"><table class="fert-table">
-        <thead><tr>
-          <th>Способ внесения</th><th>Вид удобрения</th><th>Содержание</th>
-          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th>
-        </tr></thead>
-        <tbody class="m3-n-body">${renderSectionRows(field.nRows, 'm3-n')}</tbody>
-      </table></div>
 
       <div class="m3-totals">
-        <div class="m3-total-card ${bal.closesP ? 'm3-total-ok' : 'm3-total-warn'}">
-          Итого внесено P2O5 (из ${field.targetP} кг/га)<b>${(Math.round(bal.pDeliveredTotal * 100) / 100).toFixed(2)} кг/га</b>
+        <div class="m3-total-card ${okP ? 'm3-total-ok' : 'm3-total-warn'}">
+          P2O5<b>${(Math.round(totals.P * 100) / 100).toFixed(2)} / ${field.targetP} кг/га</b>
+          <span class="rem">${remP > 0.05 ? 'осталось: ' + (Math.round(remP*100)/100).toFixed(2) : (remP < -0.05 ? 'сверх на ' + (Math.round(-remP*100)/100).toFixed(2) : 'доза закрыта')}</span>
         </div>
-        <div class="m3-total-card ${bal.closesN ? 'm3-total-ok' : 'm3-total-warn'}">
-          Итого внесено N (из ${field.targetN} кг/га)<b>${(Math.round(bal.nDeliveredTotal * 100) / 100).toFixed(2)} кг/га</b>
+        <div class="m3-total-card ${okN ? 'm3-total-ok' : 'm3-total-warn'}">
+          Азот (N)<b>${(Math.round(totals.N * 100) / 100).toFixed(2)} / ${field.targetN} кг/га</b>
+          <span class="rem">${remN > 0.05 ? 'осталось: ' + (Math.round(remN*100)/100).toFixed(2) : (remN < -0.05 ? 'сверх на ' + (Math.round(-remN*100)/100).toFixed(2) : 'доза закрыта')}</span>
         </div>
       </div>
-      ${(!bal.closesP || !bal.closesN) ? `<div class="status err" style="margin-top:10px">Выберите для строки «основное» удобрение, содержащее ${!bal.closesP ? 'фосфор' : ''}${(!bal.closesP && !bal.closesN) ? ' и ' : ''}${!bal.closesN ? 'азот' : ''} — иначе доза не закрывается.</div>` : ''}
 
-      <div class="formula-box">
-        Строка «основное» по каждому элементу рассчитывается автоматически и добирает остаток дозы,
-        не закрытый дополнительными внесениями (фертигацией). Сначала закрывается фосфор, затем азот —
-        с учётом азота, который попутно вносится фосфорными удобрениями (например, моноаммонийфосфатом).
+      <div class="table-wrap"><table class="fert-table">
+        <thead><tr>
+          <th>Вид удобрения</th><th>Содержание</th><th>Кол-во, кг/га</th>
+          <th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th><th></th>
+        </tr></thead>
+        <tbody id="m3-rows-body">${renderFieldRows(field)}</tbody>
+      </table></div>
+
+      <div class="actions">
+        <button type="button" id="m3-add-row-btn" class="btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Добавить строку
+        </button>
       </div>
 
       <div class="dl-row">
@@ -1335,33 +1377,37 @@ function renderM3FieldContent() {
     </div>
   `;
 
-  function wireSection(rows, cls) {
-    m3FieldContent.querySelectorAll('.' + cls + '-body tr[data-idx]').forEach(tr => {
-      const idx = +tr.dataset.idx;
-      const sel = tr.querySelector('.' + cls + '-fert');
-      const inp = tr.querySelector('.' + cls + '-amount');
-      const noteInp = tr.querySelector('.' + cls + '-note');
-      if (sel) sel.onchange = e => { rows[idx].fert = e.target.value; renderM3FieldContent(); };
-      if (inp && !inp.readOnly) {
-        inp.oninput = e => { rows[idx].amount = e.target.value === '' ? 0 : parseFloat(e.target.value); renderM3FieldContent(); };
-      }
-      if (noteInp) noteInp.oninput = e => { rows[idx].note = e.target.value; };
-    });
-  }
-  wireSection(field.pRows, 'm3-p');
-  wireSection(field.nRows, 'm3-n');
+  const body = document.getElementById('m3-rows-body');
+  body.querySelectorAll('tr[data-idx]').forEach(tr => {
+    const idx = +tr.dataset.idx;
+    const sel = tr.querySelector('.m3-row-fert');
+    const inp = tr.querySelector('.m3-row-amount');
+    const autoBtn = tr.querySelector('.m3-row-auto');
+    const rmBtn = tr.querySelector('.m3-row-remove');
+    const noteInp = tr.querySelector('.m3-row-note');
+    if (sel) sel.onchange = e => { field.rows[idx].fert = e.target.value; renderM3FieldContent(); };
+    if (inp) inp.oninput = e => { field.rows[idx].amount = e.target.value === '' ? 0 : parseFloat(e.target.value); renderM3FieldContent(); };
+    if (autoBtn) autoBtn.onclick = () => autoFillRow(field, idx);
+    if (rmBtn) rmBtn.onclick = () => { field.rows.splice(idx, 1); renderM3FieldContent(); };
+    if (noteInp) noteInp.oninput = e => { field.rows[idx].note = e.target.value; };
+  });
+
+  document.getElementById('m3-add-row-btn').onclick = () => {
+    field.rows.push({ fert: '', amount: 0, note: '' });
+    renderM3FieldContent();
+  };
 
   m3FieldContent.querySelector('.m3-field-dl-btn').onclick = () => downloadFieldXlsx(field);
 }
 
 function buildFieldSheetAOA(field) {
-  const bal = calcFieldBalance(field);
-  const header = ['Способ внесения', 'Вид удобрения', 'N, %', 'P, %', 'K, %', 'S, %', 'Необходимо внести, кг/га', 'Внесено N, кг/га', 'Внесено P, кг/га', 'Внесено K, кг/га', 'Внесено S, кг/га', 'Примечания'];
+  const totals = computeFieldTotals(field);
+  const header = ['Вид удобрения', 'N, %', 'P, %', 'K, %', 'S, %', 'Кол-во, кг/га', 'Внесено N, кг/га', 'Внесено P, кг/га', 'Внесено K, кг/га', 'Внесено S, кг/га', 'Примечания'];
   const rowToAoa = row => {
     const fert = fertByName(row.fert);
     const amt = row.amount || 0;
     return [
-      row.method, row.fert || '—', fert.N, fert.P, fert.K, fert.S,
+      row.fert || '—', fert.N, fert.P, fert.K, fert.S,
       Math.round(amt * 100) / 100,
       Math.round(amt * fert.N / 100 * 100) / 100,
       Math.round(amt * fert.P / 100 * 100) / 100,
@@ -1376,19 +1422,18 @@ function buildFieldSheetAOA(field) {
     ['Целевая доза N, кг/га', field.targetN],
     [],
     header,
-    ['Фосфорные удобрения'],
-    ...field.pRows.map(rowToAoa),
-    ['Азотные удобрения'],
-    ...field.nRows.map(rowToAoa),
+    ...field.rows.map(rowToAoa),
     [],
-    ['Итого внесено P2O5, кг/га', Math.round(bal.pDeliveredTotal * 100) / 100],
-    ['Итого внесено N, кг/га', Math.round(bal.nDeliveredTotal * 100) / 100],
+    ['Итого внесено P2O5, кг/га', Math.round(totals.P * 100) / 100],
+    ['Итого внесено N, кг/га', Math.round(totals.N * 100) / 100],
+    ['Итого внесено K2O, кг/га', Math.round(totals.K * 100) / 100],
+    ['Итого внесено S, кг/га', Math.round(totals.S * 100) / 100],
   ];
 }
 
 function downloadFieldXlsx(field) {
   const ws = XLSX.utils.aoa_to_sheet(buildFieldSheetAOA(field));
-  ws['!cols'] = [{ wch: 20 }, { wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
+  ws['!cols'] = [{ wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, field.name.replace(/[\\/?*[\]:]/g, '').slice(0, 31) || 'Поле');
   XLSX.writeFile(wb, `внесение_удобрений_${field.name}.xlsx`.replace(/[\\/?*[\]:]/g, ''));
@@ -1398,31 +1443,12 @@ document.getElementById('m3-dl-all-btn').onclick = () => {
   const wb = XLSX.utils.book_new();
   m3Fields.forEach((f, i) => {
     const ws = XLSX.utils.aoa_to_sheet(buildFieldSheetAOA(f));
-    ws['!cols'] = [{ wch: 20 }, { wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
+    ws['!cols'] = [{ wch: 26 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 28 }];
     let sheetName = `${i + 1}-${f.name}`.replace(/[\\/?*[\]:]/g, '').slice(0, 31);
     XLSX.utils.book_append_sheet(wb, ws, sheetName || ('Поле' + (i + 1)));
   });
   XLSX.writeFile(wb, 'внесение_удобрений_все_поля.xlsx');
 };
-
-/* NPK-калькулятор: введите количество удобрения — увидите содержание N/P/K/S */
-const npkFertSelect = document.getElementById('npk-fert-select');
-const npkAmountInput = document.getElementById('npk-amount');
-const npkResultEl = document.getElementById('npk-result');
-npkFertSelect.innerHTML = FERT_LIST.map(f => `<option value="${f.name.replace(/"/g, '&quot;')}">${f.name}</option>`).join('');
-function renderNpkCalc() {
-  const fert = fertByName(npkFertSelect.value) || FERT_LIST[0];
-  const amt = parseFloat(npkAmountInput.value) || 0;
-  npkResultEl.innerHTML = `
-    <div class="npk-chip">N<b>${(Math.round(amt * fert.N / 100 * 100) / 100).toFixed(2)} кг</b></div>
-    <div class="npk-chip">P (P2O5)<b>${(Math.round(amt * fert.P / 100 * 100) / 100).toFixed(2)} кг</b></div>
-    <div class="npk-chip">K (K2O)<b>${(Math.round(amt * fert.K / 100 * 100) / 100).toFixed(2)} кг</b></div>
-    <div class="npk-chip">S<b>${(Math.round(amt * fert.S / 100 * 100) / 100).toFixed(2)} кг</b></div>
-  `;
-}
-npkFertSelect.onchange = renderNpkCalc;
-npkAmountInput.oninput = renderNpkCalc;
-renderNpkCalc();
 
 syncFieldsFromModule2();
 
