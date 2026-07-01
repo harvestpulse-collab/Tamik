@@ -304,10 +304,14 @@
     border-radius: 6px; text-align: right; background: var(--input-bg); color: var(--text);
   }
   table.fert-table input[readonly] { background: var(--thead-bg); color: var(--accent-text); font-weight: 600; }
-  table.fert-table input.m3-p-note, table.fert-table input.m3-n-note {
-    width: 220px; text-align: left; font-weight: 400; color: var(--text);
-  }
   .fert-content-badge { font-size: 11.5px; color: var(--text-muted); }
+  tr.m3-note-row td { padding: 4px 10px 12px; border-bottom: 1px solid var(--border-light); white-space: normal; }
+  .m3-note-inner { display: flex; align-items: center; gap: 8px; }
+  .m3-note-inner label { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; }
+  .m3-note-inner input[type="text"] {
+    flex: 1; padding: 6px 10px; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--input-bg); color: var(--text);
+  }
   .m3-row-base td { background: var(--total-bg); }
 
   .m3-totals { margin-top: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
@@ -1262,7 +1266,14 @@ function renderSectionRows(rows, cls) {
       <td>${(Math.round(amt * fert.P / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.K / 100 * 100) / 100).toFixed(2)}</td>
       <td>${(Math.round(amt * fert.S / 100 * 100) / 100).toFixed(2)}</td>
-      <td><input type="text" class="${cls}-note" value="${(row.note || '').replace(/"/g,'&quot;')}" placeholder="напр. До посева / обоснование"></td>
+    </tr>
+    <tr class="m3-note-row" data-idx="${idx}">
+      <td colspan="8" class="m3-note-cell">
+        <div class="m3-note-inner">
+          <label>Примечания:</label>
+          <input type="text" class="${cls}-note" value="${(row.note || '').replace(/"/g,'&quot;')}" placeholder="напр. До посева / обоснование агронома">
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1285,7 +1296,7 @@ function renderM3FieldContent() {
       <div class="table-wrap"><table class="fert-table">
         <thead><tr>
           <th>Способ внесения</th><th>Вид удобрения</th><th>Содержание</th>
-          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th><th>Примечания</th>
+          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th>
         </tr></thead>
         <tbody class="m3-p-body">${renderSectionRows(field.pRows, 'm3-p')}</tbody>
       </table></div>
@@ -1294,7 +1305,7 @@ function renderM3FieldContent() {
       <div class="table-wrap"><table class="fert-table">
         <thead><tr>
           <th>Способ внесения</th><th>Вид удобрения</th><th>Содержание</th>
-          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th><th>Примечания</th>
+          <th>Необходимо внести, кг/га</th><th>Внесено N</th><th>Внесено P</th><th>Внесено K</th><th>Внесено S</th>
         </tr></thead>
         <tbody class="m3-n-body">${renderSectionRows(field.nRows, 'm3-n')}</tbody>
       </table></div>
@@ -1325,16 +1336,16 @@ function renderM3FieldContent() {
   `;
 
   function wireSection(rows, cls) {
-    m3FieldContent.querySelectorAll('.' + cls + '-body tr').forEach(tr => {
+    m3FieldContent.querySelectorAll('.' + cls + '-body tr[data-idx]').forEach(tr => {
       const idx = +tr.dataset.idx;
       const sel = tr.querySelector('.' + cls + '-fert');
       const inp = tr.querySelector('.' + cls + '-amount');
       const noteInp = tr.querySelector('.' + cls + '-note');
-      sel.onchange = e => { rows[idx].fert = e.target.value; renderM3FieldContent(); };
-      if (!inp.readOnly) {
+      if (sel) sel.onchange = e => { rows[idx].fert = e.target.value; renderM3FieldContent(); };
+      if (inp && !inp.readOnly) {
         inp.oninput = e => { rows[idx].amount = e.target.value === '' ? 0 : parseFloat(e.target.value); renderM3FieldContent(); };
       }
-      noteInp.oninput = e => { rows[idx].note = e.target.value; };
+      if (noteInp) noteInp.oninput = e => { rows[idx].note = e.target.value; };
     });
   }
   wireSection(field.pRows, 'm3-p');
